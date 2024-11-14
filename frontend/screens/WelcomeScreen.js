@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import { Video } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
@@ -19,23 +19,26 @@ const WelcomeScreen = () => {
         shouldPlay
         isLooping
       />
-      {/* Text */}
+      {/* Logo Image */}
       <View style={styles.overlay}>
-        <Text style={styles.text}>Welcome to Smart Flow!</Text>
+        <Image
+          source={require('../assets/24apps_logo.png')}
+          style={styles.logo}
+        />
       </View>
       {/* Buttons */}
       <View style={styles.buttons}>
         <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={styles.buttonText}>Register</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
+          style={styles.buttonLogin}
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonTextLogin}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonRegister}
+          onPress={() => navigation.navigate('Register')}
+        >
+          <Text style={styles.buttonTextRegister}>Register</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -56,32 +59,31 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     // backgroundColor: 'rgba(0, 0, 0, 0.0)',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: '25%',
+    paddingTop: '45%',
   },
-  text: {
-    color: 'white',
-    fontSize: 28,
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
+  logo: {
+    width: 172,
+    height: 93,
+    resizeMode: 'contain',
   },
   buttons: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 30,
+    bottom: 70,
     left: 0,
     right: 0,
+    gap: 20,
   },
-  button: {
-    backgroundColor: 'white',
+  buttonLogin: {
+    backgroundColor: '#53B6C7',
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 25,
-    width: 100,
+    borderRadius: 8,
+    width: '90%',
     // Shadow for Android
     elevation: 10,
     // Shadow for iOS
@@ -90,8 +92,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 8,
   },
-  buttonText: {
-    color: 'black',
+  buttonRegister: {
+    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    width: '90%',
+    borderWidth: 1,
+    borderColor: '#53B6C7',
+    // Shadow for Android
+    elevation: 10,
+    // Shadow for iOS
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+  },
+  buttonTextLogin: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  buttonTextRegister: {
+    color: '#53B6C7',
     fontSize: 16,
     textAlign: 'center',
   },
