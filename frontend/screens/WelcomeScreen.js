@@ -29,16 +29,16 @@ const WelcomeScreen = () => {
       {/* Buttons */}
       <View style={styles.buttons}>
         <TouchableOpacity
-          style={styles.buttonLogin}
-          onPress={() => navigation.navigate('Login')}
-        >
-          <Text style={styles.buttonTextLogin}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
           style={styles.buttonRegister}
           onPress={() => navigation.navigate('Register')}
         >
           <Text style={styles.buttonTextRegister}>Register</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.buttonLogin}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.buttonTextLogin}>Login</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     right: 0,
     gap: 20,
   },
-  buttonLogin: {
+  buttonRegister: {
     backgroundColor: '#53B6C7',
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -92,28 +92,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 8,
   },
-  buttonRegister: {
+  buttonLogin: {
     backgroundColor: 'transparent',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     width: '90%',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#53B6C7',
-    // Shadow for Android
-    elevation: 10,
-    // Shadow for iOS
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
   },
-  buttonTextLogin: {
+  buttonTextRegister: {
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
   },
-  buttonTextRegister: {
+  buttonTextLogin: {
     color: '#53B6C7',
     fontSize: 16,
     textAlign: 'center',
