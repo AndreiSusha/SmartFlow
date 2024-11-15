@@ -9,16 +9,18 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^2.0.0",
-    "@react-navigation/native": "^7.0.0",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-navigation/bottom-tabs": "^7.0.3",
+    "@react-navigation/native": "^7.0.2",
     "@react-navigation/stack": "^7.0.0",
-    "expo": "~51.0.39",
-    "expo-av": "~14.0.7",
-    "expo-status-bar": "~1.12.1",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
+    "expo": "~52.0.0",
+    "expo-av": "~15.0.1",
+    "expo-status-bar": "~2.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.2",
     "react-native-gesture-handler": "^2.20.2",
     "react-native-reanimated": "^3.16.1",
+    "react-native-vector-icons": "^10.2.0",
     "react-redux": "^9.1.2"
   },
   "devDependencies": {
