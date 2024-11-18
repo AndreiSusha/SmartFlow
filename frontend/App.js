@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
+import MyTabs from './navigation/TabNavigator';
 
 const Stack = createStackNavigator();
 
@@ -26,6 +27,11 @@ const App = () => {
           name="Login"
           component={LoginScreen}
           options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="Main"
+          component={MyTabs}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
