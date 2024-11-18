@@ -72,9 +72,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontWeight: 'bold',
+    fontFamily: 'Urbanist-Bold',
     color: '#53B6C7',
-    fontFamily: 'Urbanist',
     marginBottom: 28,
   },
   input: {
@@ -87,7 +86,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 18,
     marginBottom: 13,
-    fontFamily: 'Urbanist',
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
   },
@@ -99,7 +97,6 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     color: '#8391A1',
-    fontFamily: 'Urbanist',
   },
   button: {
     height: 56,
@@ -113,7 +110,5 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: 'semibold',
-    fontFamily: 'Urbanist',
   },
 });
