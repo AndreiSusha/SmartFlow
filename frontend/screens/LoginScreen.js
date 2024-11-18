@@ -6,14 +6,18 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigation = useNavigation();
 
   const login = () => {
     // Login logic here
     console.log('Logging in with:', email, password);
+    // Redirect to main screen
+    navigation.navigate('Main');
   };
   const handleForgotPassword = () => {
     console.log('Forgot password clicked');
