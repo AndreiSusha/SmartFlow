@@ -35,7 +35,7 @@ const LoginScreen = () => {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        placeholderTextColor="#8391A1"
+        placeholderTextColor="#D9D9D9"
       />
       <TextInput
         style={styles.input}
@@ -43,7 +43,7 @@ const LoginScreen = () => {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        placeholderTextColor="#8391A1"
+        placeholderTextColor="#D9D9D9"
       />
       {/* Forgot Password link */}
       <TouchableOpacity
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FAF9F9',
+    backgroundColor: '#F2F2F2',
   },
   title: {
     fontSize: 30,
@@ -81,12 +81,17 @@ const styles = StyleSheet.create({
     height: 56,
     width: 333,
     borderColor: '#53B6C7',
-    borderWidth: 1,
+    borderWidth: 0,
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#53B6C7',
     borderRadius: 8,
     paddingHorizontal: 18,
     marginBottom: 13,
     fontFamily: 'Urbanist',
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
   },
+
   forgotPasswordContainer: {
     alignSelf: 'flex-end',
     marginBottom: 13,
