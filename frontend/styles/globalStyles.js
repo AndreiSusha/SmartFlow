@@ -12,6 +12,12 @@ export const useGlobalStyles = () => {
   }
 
   return StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F2F2F2',
+    },
     text: {
       fontFamily: 'Urbanist-Regular',
     },
