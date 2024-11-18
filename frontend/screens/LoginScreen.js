@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     marginBottom: 13,
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+    fontFamily: 'Urbanist-Regular',
   },
 
   forgotPasswordContainer: {
@@ -97,6 +98,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     color: '#8391A1',
+    fontFamily: 'Urbanist-Regular',
   },
   button: {
     height: 56,
@@ -110,5 +112,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 15,
+    fontFamily: 'Urbanist-Regular',
   },
 });
