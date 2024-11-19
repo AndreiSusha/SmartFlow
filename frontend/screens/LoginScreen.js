@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import BackButton from '../components/BackButton';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -26,6 +27,8 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* BackButton */}
+      <BackButton />
       <Text style={styles.title}>Welcome back! Glad to see you, Again</Text>
       {/* Input block */}
       <TextInput
