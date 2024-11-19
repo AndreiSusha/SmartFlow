@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ReportsScreen from '../screens/ReportsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import Test from '../screens/test';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,6 +21,9 @@ const MyTabs = () => (
         } else if (route.name === 'Settings') {
           iconName = focused ? 'settings' : 'settings-outline';
         }
+        // else if (route.name === 'Test') {
+        //   iconName = focused ? 'Test' : 'settings-outline';
+        // }
         return <Ionicons name={iconName} size={size} color={color} />;
       },
       tabBarActiveTintColor: '#42a5f5',
@@ -29,6 +33,8 @@ const MyTabs = () => (
     <Tab.Screen name="Reports" component={ReportsScreen} />
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Settings" component={SettingsScreen} />
+
+    {/* <Tab.Screen name="Test" component={Test} /> */}
   </Tab.Navigator>
 );
 
