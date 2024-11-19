@@ -33,6 +33,7 @@ const MyTabs = () => (
     <Tab.Screen name="Reports" component={ReportsScreen} />
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Settings" component={SettingsScreen} />
+
     {/* <Tab.Screen name="Test" component={Test} /> */}
   </Tab.Navigator>
 );

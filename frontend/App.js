@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useFonts } from 'expo-font';
+import { View, ActivityIndicator } from 'react-native';
 
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -10,6 +12,22 @@ import MyTabs from './navigation/TabNavigator';
 const Stack = createStackNavigator();
 
 const App = () => {
+  // Upload fonts
+  const [fontsLoaded] = useFonts({
+    'Urbanist-Bold': require('./assets/fonts/Urbanist-Bold.ttf'),
+    'Urbanist-Italic': require('./assets/fonts/Urbanist-Italic.ttf'),
+    'Urbanist-Regular': require('./assets/fonts/Urbanist-Regular.ttf'),
+    'Urbanist-SemiBold': require('./assets/fonts/Urbanist-SemiBold.ttf'),
+  });
+
+  // Show loading screen while fonts are loading
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#53B6C7" />
+      </View>
+    );
+  }
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Welcome">
@@ -31,7 +49,7 @@ const App = () => {
         <Stack.Screen
           name="Main"
           component={MyTabs}
-          options={{ headerShown: false }}
+          options={{ headerShown: true }}
         />
       </Stack.Navigator>
     </NavigationContainer>
