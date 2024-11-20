@@ -27,14 +27,8 @@ const WelcomeScreen = () => {
           style={styles.logo}
         />
       </View>
-      {/* Buttons */}
+      {/* Button */}
       <View style={styles.button}>
-        {/* <TouchableOpacity
-          style={styles.buttonLogin}
-          onPress={() => navigation.navigate('Login')}
-        >
-          <Text style={styles.buttonTextLogin}>Login</Text>
-        </TouchableOpacity> */}
         <TouchableOpacity style={styles.buttonLogin}>
           <LinearGradient
             colors={['#53B6C7', 'transparent']}
@@ -69,7 +63,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    // paddingTop: '5%',
     marginBottom: 20,
   },
   logo: {
@@ -87,20 +80,6 @@ const styles = StyleSheet.create({
     right: 0,
     gap: 20,
   },
-  // buttonLogin: {
-  //   backgroundColor: '#53B6C7',
-  //   paddingVertical: 12,
-  //   paddingHorizontal: 20,
-  //   borderRadius: 8,
-  //   width: '90%',
-  //   // Shadow for Android
-  //   elevation: 10,
-  //   // Shadow for iOS
-  //   shadowColor: '#000000',
-  //   shadowOffset: { width: 0, height: 6 },
-  //   shadowOpacity: 0.5,
-  //   shadowRadius: 8,
-  // },
   buttonLogin: {
     backgroundColor: '#53B6C7',
     paddingVertical: 12,
@@ -110,10 +89,10 @@ const styles = StyleSheet.create({
     // Shadow for Android
     elevation: 10,
     // Shadow for iOS
-    shadowColor: '#53B6C7', // Тень в цвет кнопки
-    shadowOffset: { width: 0, height: 6 }, // Легкий смещение вниз
-    shadowOpacity: 0.4, // Выраженная тень, чтобы она была заметна
-    shadowRadius: 10, // Размытая тень для мягкости
+    shadowColor: '#53B6C7',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
   },
 
   buttonTextLogin: {
