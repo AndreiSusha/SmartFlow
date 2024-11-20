@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import React from 'react';
 import { Video } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
@@ -13,7 +14,7 @@ const WelcomeScreen = () => {
         ref={video}
         style={styles.video}
         source={{
-          uri: 'https://cdn.pixabay.com/video/2024/10/13/236189_large.mp4',
+          uri: 'https://cdn.pixabay.com/video/2022/05/29/118546-715412131_large.mp4',
         }}
         resizeMode="cover"
         shouldPlay
@@ -27,18 +28,26 @@ const WelcomeScreen = () => {
         />
       </View>
       {/* Buttons */}
-      <View style={styles.buttons}>
-        <TouchableOpacity
-          style={styles.buttonRegister}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={styles.buttonTextRegister}>Register</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+      <View style={styles.button}>
+        {/* <TouchableOpacity
           style={styles.buttonLogin}
           onPress={() => navigation.navigate('Login')}
         >
           <Text style={styles.buttonTextLogin}>Login</Text>
+        </TouchableOpacity> */}
+        <TouchableOpacity style={styles.buttonLogin}>
+          <LinearGradient
+            colors={['#53B6C7', 'transparent']}
+            start={[0, 0]}
+            end={[0, 1]}
+            style={[StyleSheet.absoluteFill, { borderRadius: 8 }]}
+          />
+          <Text
+            style={styles.buttonTextLogin}
+            onPress={() => navigation.navigate('Login')}
+          >
+            Login
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -58,17 +67,17 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    // backgroundColor: 'rgba(0, 0, 0, 0.0)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: '45%',
+    // paddingTop: '5%',
+    marginBottom: 20,
   },
   logo: {
-    width: 172,
-    height: 93,
+    width: 142,
+    height: 53,
     resizeMode: 'contain',
   },
-  buttons: {
+  button: {
     flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -78,7 +87,21 @@ const styles = StyleSheet.create({
     right: 0,
     gap: 20,
   },
-  buttonRegister: {
+  // buttonLogin: {
+  //   backgroundColor: '#53B6C7',
+  //   paddingVertical: 12,
+  //   paddingHorizontal: 20,
+  //   borderRadius: 8,
+  //   width: '90%',
+  //   // Shadow for Android
+  //   elevation: 10,
+  //   // Shadow for iOS
+  //   shadowColor: '#000000',
+  //   shadowOffset: { width: 0, height: 6 },
+  //   shadowOpacity: 0.5,
+  //   shadowRadius: 8,
+  // },
+  buttonLogin: {
     backgroundColor: '#53B6C7',
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -87,27 +110,14 @@ const styles = StyleSheet.create({
     // Shadow for Android
     elevation: 10,
     // Shadow for iOS
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
+    shadowColor: '#53B6C7', // Тень в цвет кнопки
+    shadowOffset: { width: 0, height: 6 }, // Легкий смещение вниз
+    shadowOpacity: 0.4, // Выраженная тень, чтобы она была заметна
+    shadowRadius: 10, // Размытая тень для мягкости
   },
-  buttonLogin: {
-    backgroundColor: 'transparent',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    width: '90%',
-    borderWidth: 1.5,
-    borderColor: '#53B6C7',
-  },
-  buttonTextRegister: {
-    color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
-  },
+
   buttonTextLogin: {
-    color: '#53B6C7',
+    color: 'white',
     fontSize: 16,
     textAlign: 'center',
   },
