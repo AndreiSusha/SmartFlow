@@ -28,6 +28,7 @@ const MyTabs = () => (
       },
       tabBarActiveTintColor: '#53B6C7',
       tabBarInactiveTintColor: 'gray',
+      headerShown: false,
     })}
   >
     <Tab.Screen name="Reports" component={ReportsScreen} />
