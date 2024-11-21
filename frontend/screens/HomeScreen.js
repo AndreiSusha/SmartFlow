@@ -77,17 +77,27 @@ const styles = StyleSheet.create({
     color: '#53B6C7',
   },
   title: {
-    fontSize: 24,
-    fontFamily: 'Urbanist-Bold',
-    color: '#53B6C7',
-    marginBottom: 16,
+    fontSize: 22,
+    fontFamily: 'Urbanist-SemiBold',
+    color: '#000000',
+    marginBottom: 12,
   },
   graphBox: {
+    width: '90%',
+    height: 271,
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 21.18,
     padding: 16,
-    marginBottom: 16,
-    elevation: 4,
+    marginBottom: 36,
+    alignSelf: 'center',
+    // Shadow for Android
+    elevation: 8,
+
+    // Shadow for iOS
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   graphText: {
     fontSize: 16,
@@ -103,12 +113,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     fontFamily: 'Urbanist-SemiBold',
-    color: '#8391A1',
+    color: '#000000',
   },
   viewAll: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Urbanist-Regular',
-    color: '#53B6C7',
+    color: '#A0C287',
   },
   cardGrid: {
     flexDirection: 'row',
