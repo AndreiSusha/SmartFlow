@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Entypo';
 
 const ReportCard = ({ title, value, onPress }) => {
   // Split the value into number and unit
@@ -13,6 +14,12 @@ const ReportCard = ({ title, value, onPress }) => {
           <Text style={styles.valueUnit}> {unit}</Text>
         </Text>
         <Text style={styles.title}>{title}</Text>
+        <Icon
+          name="chevron-with-circle-right"
+          size={34}
+          color="#FFFFFF"
+          style={styles.icon}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -58,6 +65,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#FFFFFF',
     fontFamily: 'Inter-SemiBold',
+  },
+  icon: {
+    position: 'absolute',
+    right: 8,
+    bottom: 3,
   },
 });
 
