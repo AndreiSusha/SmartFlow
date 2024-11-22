@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     color: '#FFFFFF',
-    fontFamily: 'Urbanist-Bold',
+    fontFamily: 'Inter-SemiBold',
   },
   value: {
     fontSize: 22,
