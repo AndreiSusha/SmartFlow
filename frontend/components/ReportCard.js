@@ -2,12 +2,17 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 const ReportCard = ({ title, value, onPress }) => {
-  // console.log('ReportCard props:', { title, value, onPress });
+  // Split the value into number and unit
+  const [number, unit] = value.split(' ');
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardContent}>
+        <Text style={styles.value}>
+          <Text style={styles.valueNumber}>{number}</Text>
+          <Text style={styles.valueUnit}> {unit}</Text>
+        </Text>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.value}>{value}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -29,20 +34,30 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardContent: {
-    padding: 16,
+    padding: 12,
     justifyContent: 'center',
     alignItems: 'flex-start',
   },
   title: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontFamily: 'Inter-SemiBold',
+    marginTop: 8,
+  },
+  value: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  valueNumber: {
     fontSize: 22,
     color: '#FFFFFF',
     fontFamily: 'Inter-SemiBold',
   },
-  value: {
-    fontSize: 16,
-    color: '#E3E3E3',
+  valueUnit: {
+    fontSize: 10,
+    color: '#FFFFFF',
     fontFamily: 'Inter-SemiBold',
-    marginTop: 8,
   },
 });
 
