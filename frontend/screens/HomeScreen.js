@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontFamily: 'Urbanist-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#000000',
     marginBottom: 12,
   },
@@ -111,13 +111,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Urbanist-SemiBold',
+    fontSize: 15,
+    fontFamily: 'Inter-SemiBold',
     color: '#000000',
   },
   viewAll: {
     fontSize: 15,
-    fontFamily: 'Urbanist-Regular',
+    fontFamily: 'Inter-Medium',
     color: '#A0C287',
   },
   cardGrid: {

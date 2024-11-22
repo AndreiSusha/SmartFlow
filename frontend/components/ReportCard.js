@@ -34,14 +34,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   title: {
-    fontSize: 18,
+    fontSize: 22,
     color: '#FFFFFF',
     fontFamily: 'Inter-SemiBold',
   },
   value: {
-    fontSize: 22,
+    fontSize: 16,
     color: '#E3E3E3',
-    fontFamily: 'Urbanist-Regular',
+    fontFamily: 'Inter-SemiBold',
     marginTop: 8,
   },
 });
