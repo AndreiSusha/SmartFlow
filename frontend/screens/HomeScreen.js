@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import ReportCard from '../components/ReportCard';
+import Chart from '../components/Chart';
 
 const HomeScreen = ({ route }) => {
   const { role } = route.params || { role: 'user' };
@@ -34,9 +35,7 @@ const HomeScreen = ({ route }) => {
       <Text style={styles.title}>Consumption Overview</Text>
 
       {/* Chart */}
-      <View style={styles.chartBox}>
-        <Text style={styles.chartText}>Chart will go here</Text>
-      </View>
+      <Chart />
 
       {/* Reports */}
       <View style={styles.subtitleRow}>
@@ -81,28 +80,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#000000',
     marginBottom: 12,
-  },
-  chartBox: {
-    width: '90%',
-    height: 271,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 21.18,
-    padding: 16,
-    marginBottom: 36,
-    alignSelf: 'center',
-    // Shadow for Android
-    elevation: 8,
-
-    // Shadow for iOS
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  chartText: {
-    fontSize: 16,
-    color: '#8391A1',
-    textAlign: 'center',
   },
   subtitleRow: {
     flexDirection: 'row',
