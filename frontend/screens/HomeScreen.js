@@ -34,12 +34,12 @@ const HomeScreen = ({ route }) => {
       <Text style={styles.title}>Consumption Overview</Text>
 
       {/* Chart */}
-      <View style={styles.graphBox}>
-        <Text style={styles.graphText}>Chart will go here</Text>
+      <View style={styles.chartBox}>
+        <Text style={styles.chartText}>Chart will go here</Text>
       </View>
 
       {/* Reports */}
-      <View style={styles.row}>
+      <View style={styles.subtitleRow}>
         <Text style={styles.subtitle}>Monthly reports</Text>
         <TouchableOpacity>
           <Text style={styles.viewAll}>View All</Text>
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 12,
   },
-  graphBox: {
+  chartBox: {
     width: '90%',
     height: 271,
     backgroundColor: '#FFFFFF',
@@ -99,12 +99,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  graphText: {
+  chartText: {
     fontSize: 16,
     color: '#8391A1',
     textAlign: 'center',
   },
-  row: {
+  subtitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -124,5 +124,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    padding: 7,
   },
 });

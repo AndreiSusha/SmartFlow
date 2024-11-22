@@ -15,30 +15,32 @@ const ReportCard = ({ title, value, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: 320,
-    height: 120,
-    backgroundColor: '#FFFFFF',
+    width: 150,
+    height: 95,
+    backgroundColor: '#53B6C7',
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 14,
+    // Shadow for iOS
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 4, // Shadow for Android
+    shadowRadius: 4,
+    // Shadow for Android
+    elevation: 4,
   },
   cardContent: {
     padding: 16,
-    // justifyContent: 'center',
-    // alignItems: 'center',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
   title: {
     fontSize: 18,
-    color: '#53B6C7',
+    color: '#FFFFFF',
     fontFamily: 'Urbanist-Bold',
   },
   value: {
     fontSize: 22,
-    color: '#333',
+    color: '#E3E3E3',
     fontFamily: 'Urbanist-Regular',
     marginTop: 8,
   },
