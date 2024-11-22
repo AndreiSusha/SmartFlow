@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#E3E3E3',
     fontFamily: 'Inter-SemiBold',
     marginTop: 8,
   },
