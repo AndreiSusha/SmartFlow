@@ -2,10 +2,11 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import ReportsScreen from "../screens/ReportsScreen";
+import ReportsScreen from "../screens/Reports/ReportsScreen";
 import HomeScreen from "../screens/HomeScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import Test from "../screens/test";
+import ReportsNavigator from "./ReportsNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -33,8 +34,8 @@ const MyTabs = () => (
   >
     <Tab.Screen
       name="Reports"
-      component={ReportsScreen}
-      options={{ headerShown: true, headerTitle: "Reports" }}
+      component={ReportsNavigator}
+      options={{ headerShown: false, headerTitle: "Reports" }}
     />
     <Tab.Screen name="Home" component={HomeScreen} />
     <Tab.Screen name="Settings" component={SettingsScreen} />

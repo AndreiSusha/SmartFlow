@@ -49,7 +49,7 @@ const App = () => {
         <Stack.Screen
           name="Main"
           component={MyTabs}
-          options={{ headerShown: true }}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
