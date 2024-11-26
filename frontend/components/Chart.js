@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { StyleSheet, View, Text } from 'react-native';
+import { Dropdown } from 'react-native-element-dropdown';
 import { PolarChart, Pie } from 'victory-native';
 
 const data = [
@@ -11,43 +11,57 @@ const data = [
 ];
 
 const Chart = () => {
-  const [selectedMonth, setSelectedMonth] = useState('January');
-  const [isPickerVisible, setIsPickerVisible] = useState(false);
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
 
-  const togglePicker = () => setIsPickerVisible(!isPickerVisible);
+  const months = [
+    { label: 'January', value: 'January' },
+    { label: 'February', value: 'February' },
+    { label: 'March', value: 'March' },
+    { label: 'April', value: 'April' },
+    { label: 'May', value: 'May' },
+    { label: 'June', value: 'June' },
+    { label: 'July', value: 'July' },
+    { label: 'August', value: 'August' },
+    { label: 'September', value: 'September' },
+    { label: 'October', value: 'October' },
+    { label: 'November', value: 'November' },
+    { label: 'December', value: 'December' },
+  ];
 
   return (
     <View style={styles.chartBox}>
       {/* Dropdown menu */}
       <View style={styles.dropdownBox}>
-        <TouchableOpacity onPress={togglePicker}>
-          <Text style={styles.dropdownButtonText}>Select Month</Text>
-        </TouchableOpacity>
-        {isPickerVisible && (
-          <Picker
-            selectedValue={selectedMonth}
-            onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-            style={styles.picker}
-          >
-            {months.map((month, index) => (
-              <Picker.Item key={index} label={month} value={month} />
-            ))}
-          </Picker>
-        )}
+        <Dropdown
+          style={styles.dropdown}
+          placeholderStyle={[
+            styles.placeholderStyle,
+            { fontFamily: 'Roboto-Regular' },
+          ]}
+          selectedTextStyle={[
+            styles.selectedTextStyle,
+            { fontFamily: 'Roboto-Regular' },
+          ]}
+          itemTextStyle={{
+            fontSize: 13,
+            color: '#A0C287',
+            fontFamily: 'Roboto-Regular',
+          }}
+          iconStyle={{ tintColor: '#A0C287' }}
+          data={months}
+          maxHeight={300}
+          labelField="label"
+          valueField="value"
+          placeholder={!isFocus ? 'Month' : '...'}
+          value={selectedMonth}
+          onFocus={() => setIsFocus(true)}
+          onBlur={() => setIsFocus(false)}
+          onChange={(item) => {
+            setSelectedMonth(item.value);
+            setIsFocus(false);
+          }}
+        />
       </View>
 
       {/* Chart */}
@@ -85,28 +99,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     elevation: 4,
     zIndex: 1,
     width: 120,
   },
-  dropdownButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#53B6C7',
+  dropdown: {
+    height: 30,
+    borderWidth: 1,
+    borderRadius: 16,
+    borderColor: '#A0C287',
+    paddingHorizontal: 12,
   },
-  picker: {
-    height: 100,
-    width: 120,
-    color: '#53B6C7',
-  },
-  selectedMonth: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#000000',
-    marginTop: 8,
+  selectedTextStyle: {
+    fontSize: 13,
+    color: '#A0C287',
   },
   chartContainer: {
     width: '100%',
