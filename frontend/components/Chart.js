@@ -111,6 +111,11 @@ const styles = StyleSheet.create({
     borderColor: '#A0C287',
     paddingHorizontal: 12,
   },
+  placeholderStyle: {
+    fontSize: 13,
+    color: '#A0C287',
+    fontFamily: 'Roboto-Regular',
+  },
   selectedTextStyle: {
     fontSize: 13,
     color: '#A0C287',
