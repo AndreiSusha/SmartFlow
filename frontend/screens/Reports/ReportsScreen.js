@@ -16,7 +16,7 @@ const ReportsScreen = () => {
         <ReportsCard
           title={item.type}
           monthlyDigit={item.value}
-          onClick={navigation.navigate("Report", {
+          onClick={() => navigation.navigate("Report", {
             measurementType: item.type,
           })}
         />

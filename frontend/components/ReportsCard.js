@@ -12,9 +12,9 @@ const ICONS = {
   solar_energy: "battery-charging-outline",
 };
 
-const ReportsCard = ({ title, monthlyDigit }) => {
+const ReportsCard = ({ title, monthlyDigit, onClick }) => {
   return (
-    <TouchableOpacity style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onClick}>
       <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
         <View style={styles.iconWrapper}>
           <Ionicons
