@@ -26,12 +26,17 @@ const MyTabs = () => (
         // }
         return <Ionicons name={iconName} size={size} color={color} />;
       },
-      tabBarActiveTintColor: '#42a5f5',
-      tabBarInactiveTintColor: 'gray',
+      tabBarActiveTintColor: '#53B6C7',
+      tabBarInactiveTintColor: '#000000',
+      headerShown: false,
     })}
   >
     <Tab.Screen name="Reports" component={ReportsScreen} />
-    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen
+      name="Home"
+      component={HomeScreen}
+      initialParams={{ role: 'admin' }}
+    />
     <Tab.Screen name="Settings" component={SettingsScreen} />
 
     {/* <Tab.Screen name="Test" component={Test} /> */}

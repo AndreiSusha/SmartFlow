@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useFonts } from 'expo-font';
 import { View, ActivityIndicator } from 'react-native';
 
+import customFonts from './config/fonts';
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -13,12 +14,7 @@ const Stack = createStackNavigator();
 
 const App = () => {
   // Upload fonts
-  const [fontsLoaded] = useFonts({
-    'Urbanist-Bold': require('./assets/fonts/Urbanist-Bold.ttf'),
-    'Urbanist-Italic': require('./assets/fonts/Urbanist-Italic.ttf'),
-    'Urbanist-Regular': require('./assets/fonts/Urbanist-Regular.ttf'),
-    'Urbanist-SemiBold': require('./assets/fonts/Urbanist-SemiBold.ttf'),
-  });
+  const [fontsLoaded] = useFonts(customFonts);
 
   // Show loading screen while fonts are loading
   if (!fontsLoaded) {
