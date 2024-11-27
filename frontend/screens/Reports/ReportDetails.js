@@ -3,11 +3,12 @@ import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { CartesianChart, Bar } from "victory-native";
 import { LinearGradient, useFont } from "@shopify/react-native-skia";
 import { vec } from "react-native-redash";
+import ElectricitySvg from "../../assets/svg/Electricity.svg";
 
 const ReportDetails = () => {
-  const [period, setPeriod] = useState("weekly"); // Default period
-  const [unit, setUnit] = useState("kWh"); // "kWh" or "Euros"
-  const font = useFont(require("../../assets/fonts/Urbanist-Bold.ttf"), 12);
+  const [period, setPeriod] = useState("weekly");
+  const [unit, setUnit] = useState("kWh");
+  const font = useFont(require("../../assets/fonts/Urbanist-Bold.ttf"), 11);
 
   if (!font) {
     return (
@@ -17,25 +18,41 @@ const ReportDetails = () => {
     );
   }
 
+  const getWeekStartDate = (date) => {
+    const currentDate = new Date(date);
+    const dayOfWeek = currentDate.getDay();
+    const difference = currentDate.getDate() - dayOfWeek;
+    return new Date(currentDate.setDate(difference));
+  };
+
+  const today = new Date();
+  const DATA_MONTHLY = Array.from({ length: 13 }, (_, i) => {
+    const weekStartDate = new Date(today);
+    weekStartDate.setDate(weekStartDate.getDate() - (12 - i) * 7);
+    const weekLabel = weekStartDate.toLocaleDateString("default", {
+      month: "numeric",
+      day: "numeric",
+    });
+    return {
+      weekIndex: i + 1,
+      weekLabel,
+      kWh: Math.random() * 70 + 30,
+      cost: (Math.random() * 70 + 30) * 0.2,
+    };
+  });
+
   const DATA_WEEKLY = Array.from({ length: 7 }, (_, i) => ({
     day: i + 1,
     kWh: Math.random() * 10 + 5,
-    cost: (Math.random() * 10 + 5) * 0.2, 
+    cost: (Math.random() * 10 + 5) * 0.2,
   }));
 
-  const DATA_MONTHLY = Array.from({ length: 12 }, (_, i) => ({
+  const DATA_YEARLY = Array.from({ length: 12 }, (_, i) => ({
     month: i + 1,
-    kWh: Math.random() * 300 + 100, 
-    cost: (Math.random() * 300 + 100) * 0.2, 
+    kWh: Math.random() * 300 + 100,
+    cost: (Math.random() * 300 + 100) * 0.2,
   }));
 
-  const DATA_YEARLY = Array.from({ length: 5 }, (_, i) => ({
-    year: 2020 + i,
-    kWh: Math.random() * 3000 + 1000, 
-    cost: (Math.random() * 3000 + 1000) * 0.2, 
-  }));
-
-  // Select data based on the selected period
   let data = [];
   let xKey = "";
   let xTickCount = 0;
@@ -53,59 +70,80 @@ const ReportDetails = () => {
       break;
     case "monthly":
       data = DATA_MONTHLY;
-      xKey = "month";
-      xTickCount = 12;
+      xKey = "weekIndex";
+      xTickCount = DATA_MONTHLY.length;
+      const weekLabelMap = {};
+      data.forEach((item) => {
+        weekLabelMap[item.weekIndex] = item.weekLabel;
+      });
       formatXLabel = (value) => {
-        const date = new Date(2024, value - 1);
-        return date.toLocaleString("default", { month: "narrow" });
+        return value % 2 === 1 ? weekLabelMap[value] : "";
       };
       break;
     case "yearly":
       data = DATA_YEARLY;
-      xKey = "year";
-      xTickCount = 5;
-      formatXLabel = (value) => value.toString();
+      xKey = "month";
+      xTickCount = 12;
+      formatXLabel = (value) => {
+        const date = new Date(0, value - 1);
+        return date.toLocaleString("default", { month: "narrow" });
+      };
       break;
     default:
       break;
   }
 
-  // Determine yKey based on the selected unit
   const yKey = unit === "kWh" ? "kWh" : "cost";
 
-  // Format y-axis labels
   const formatYLabel = (value) => {
     return unit === "kWh" ? `${value.toFixed(0)}kWh` : `€${value.toFixed(2)}`;
   };
 
-  // Chart title based on the selected unit
-  const chartTitle = unit === "kWh" ? "Energy Consumption (kWh)" : "Energy Cost (€)";
+  const chartTitle =
+    unit === "kWh" ? "Energy Consumption (kWh)" : "Energy Cost (€)";
 
   return (
     <View style={{ flex: 1, paddingTop: 30 }}>
-      {/* Unit Toggle Buttons */}
-      <View style={styles.unitToggleContainer}>
-        <TouchableOpacity
-          style={[styles.unitButton, unit === "kWh" && styles.activeUnitButton]}
-          onPress={() => setUnit("kWh")}
-        >
-          <Text style={[styles.unitButtonText, unit === "kWh" && styles.activeUnitButtonText]}>
-            kWh
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.unitButton, unit === "Euros" && styles.activeUnitButton]}
-          onPress={() => setUnit("Euros")}
-        >
-          <Text style={[styles.unitButtonText, unit === "Euros" && styles.activeUnitButtonText]}>
-            Euros
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={[styles.block, { height: 400 }]}>
-        {/* Chart Title */}
-        <Text style={styles.chartTitle}>{chartTitle}</Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          {/* <View >
+            <ElectricitySvg width="50" height="100" />
+          </View> */}
+          <View style={styles.customSwitch}>
+            <TouchableOpacity
+              style={[
+                styles.switchOption,
+                unit === "kWh" && styles.activeSwitchOption,
+              ]}
+              onPress={() => setUnit("kWh")}
+            >
+              <Text
+                style={[
+                  styles.switchText,
+                  unit === "kWh" && styles.activeSwitchText,
+                ]}
+              >
+                kWh
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.switchOption,
+                unit === "Euros" && styles.activeSwitchOption,
+              ]}
+              onPress={() => setUnit("Euros")}
+            >
+              <Text
+                style={[
+                  styles.switchText,
+                  unit === "Euros" && styles.activeSwitchText,
+                ]}
+              >
+                €
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <CartesianChart
           frame={{ lineWidth: 0 }}
@@ -125,7 +163,7 @@ const ReportDetails = () => {
           xAxis={{
             labelColor: "#667085",
             font,
-            formatXLabel,
+            formatXLabel: formatXLabel,
             lineColor: "white",
             tickCount: xTickCount,
           }}
@@ -151,7 +189,6 @@ const ReportDetails = () => {
             </>
           )}
         </CartesianChart>
-        {/* Period Selection Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, period === "weekly" && styles.activeButton]}
@@ -176,10 +213,10 @@ const ReportDetails = () => {
                 period === "monthly" && styles.activeButtonText,
               ]}
             >
-              Year
+              Last 3 months
             </Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={[styles.button, period === "yearly" && styles.activeButton]}
             onPress={() => setPeriod("yearly")}
           >
@@ -191,7 +228,7 @@ const ReportDetails = () => {
             >
               Year
             </Text>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -206,31 +243,31 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   chartTitle: {
-    textAlign: "center",
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
   },
-  unitToggleContainer: {
+  customSwitch: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#A0C287",
+    borderRadius: 5,
+    overflow: "hidden",
   },
-  unitButton: {
+  switchOption: {
     paddingVertical: 6,
-    paddingHorizontal: 20,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 20,
-    marginHorizontal: 5,
+    paddingHorizontal: 13,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  activeUnitButton: {
-    backgroundColor: "#53B6C7",
+  activeSwitchOption: {
+    backgroundColor: "#A0C287",
   },
-  unitButtonText: {
-    color: "#000",
+  switchText: {
     fontSize: 14,
+    color: "#000",
   },
-  activeUnitButtonText: {
+  activeSwitchText: {
     color: "#fff",
   },
   buttonContainer: {
@@ -257,4 +294,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReportDetails;
+export default ReportDetails;

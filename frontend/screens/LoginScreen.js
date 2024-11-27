@@ -28,8 +28,6 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* BackButton */}
-      <BackButton />
       <Text style={styles.title}>Welcome back! Glad to see you, Again</Text>
       {/* Input block */}
       <TextInput
