@@ -8,7 +8,8 @@ import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
 import MyTabs from './navigation/TabNavigator';
-
+import UserManagement from './screens/UserManagemet';
+import UserDetails from './screens/UserDetails';
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -49,6 +50,16 @@ const App = () => {
         <Stack.Screen
           name="Main"
           component={MyTabs}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="UserManagement"
+          component={UserManagement}
+          options={{ headerShown: true }}
+        />
+        <Stack.Screen
+          name="UserDetails"
+          component={UserDetails}
           options={{ headerShown: true }}
         />
       </Stack.Navigator>
