@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -6,25 +6,20 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-} from "react-native";
-
-import { useNavigation } from "@react-navigation/native";
-
-import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
-import { useAuthStore } from "../stores/authStore";
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { useAuthStore } from '../stores/authStore';
 
 export default function SettingsScreen() {
-
   const navigation = useNavigation();
-  const logout = useAuthStore((state) => state.logout);
-
 
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
       <View style={styles.profileContainer}>
         <Image
-          source={require("@assets/images/Ellipse136.png")}
+          source={require('@assets/images/Ellipse136.png')}
           style={styles.profileImage}
         />
         <View>
@@ -35,13 +30,16 @@ export default function SettingsScreen() {
 
       {/* Settings Options */}
       <View style={styles.settingsContainer}>
-        <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("UserManagement")}>
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => navigation.navigate('UserManagement')}
+        >
           <View style={styles.iconContainer}>
             <Ionicons name="people-outline" size={24} color="#A0C287" />
           </View>
           <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>User Management</Text>
-              <Text style={styles.optionSubtitle}>Manage Users</Text>
+            <Text style={styles.optionTitle}>User Management</Text>
+            <Text style={styles.optionSubtitle}>Manage Users</Text>
           </View>
           <View style={styles.arrowContainer}>
             <MaterialIcons name="chevron-right" size={24} color="#777" />
@@ -50,7 +48,7 @@ export default function SettingsScreen() {
 
         <TouchableOpacity
           style={styles.option}
-          onPress={() => navigation.navigate("AssetManagement")}
+          onPress={() => navigation.navigate('AssetManagement')}
         >
           <View style={styles.iconContainer}>
             <MaterialIcons name="location-on" size={24} color="#A0C287" />
@@ -108,8 +106,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   profileContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginVertical: 20,
   },
   profileImage: {
@@ -120,29 +118,29 @@ const styles = StyleSheet.create({
   },
   profileName: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: 'bold',
+    color: '#333',
   },
   profileEmail: {
     fontSize: 14,
-    color: "#777",
+    color: '#777',
   },
   settingsContainer: {
     marginTop: 10,
   },
   option: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     padding: 15,
     marginBottom: 10,
     borderRadius: 8,
     elevation: 1,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   iconContainer: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     width: 30,
   },
   optionTextContainer: {
@@ -150,31 +148,31 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   arrowContainer: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   optionTitle: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: 'bold',
+    color: '#333',
   },
   optionSubtitle: {
     fontSize: 14,
-    color: "#777",
+    color: '#777',
   },
   logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#D9534F",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#D9534F',
     padding: 15,
     borderRadius: 8,
     marginTop: 20,
   },
   logoutText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginLeft: 10,
   },
 });
