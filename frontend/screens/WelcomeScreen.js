@@ -23,7 +23,7 @@ const WelcomeScreen = () => {
       {/* Logo Image */}
       <View style={styles.overlay}>
         <Image
-          source={require('../assets/24apps_logo.png')}
+          source={require('../assets/images/24apps_logo.png')}
           style={styles.logo}
         />
       </View>

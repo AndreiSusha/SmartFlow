@@ -18,7 +18,7 @@ const HomeScreen = ({ route }) => {
       <Text style={styles.title}>Consumption Overview</Text>
 
       {/* Chart */}
-      <Chart role={role} />
+      {/* <Chart role={role} /> */}
 
       {/* Reports */}
       <View style={styles.subtitleRow}>
