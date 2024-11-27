@@ -99,17 +99,32 @@ const ReportDetails = () => {
     return unit === "kWh" ? `${value.toFixed(0)}kWh` : `€${value.toFixed(2)}`;
   };
 
-  const chartTitle =
-    unit === "kWh" ? "Energy Consumption (kWh)" : "Energy Cost (€)";
-
   return (
     <View style={{ flex: 1, paddingTop: 30 }}>
-      <View style={[styles.block, { height: 400 }]}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          {/* <View >
-            <ElectricitySvg width="50" height="100" />
-          </View> */}
-          <View style={styles.customSwitch}>
+      <View style={[styles.block, { height: 450 }]}>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
+        >
+          <View style={{ flex: 1, flexDirection: "row", gap: 10 }}>
+            <ElectricitySvg width="80" height="100" />
+            <View
+              style={{ flex: 1, justifyContent: "center", paddingBottom: 10 }}
+            >
+              <Text
+                style={{ fontSize: 45, color: "#A0C287", marginBottom: -6 }}
+              >
+                July
+              </Text>
+              <Text style={{ fontSize: 25 }}>
+                312 <Text style={{ fontSize: 18 }}>kWh</Text>
+              </Text>
+            </View>
+          </View>
+          <View style={[styles.customSwitch, { marginTop: 15 }]}>
             <TouchableOpacity
               style={[
                 styles.switchOption,
@@ -239,6 +254,7 @@ const styles = StyleSheet.create({
   block: {
     marginHorizontal: 20,
     padding: 14,
+    paddingTop: 10,
     backgroundColor: "#ffffff",
     borderRadius: 16,
   },
@@ -253,10 +269,11 @@ const styles = StyleSheet.create({
     borderColor: "#A0C287",
     borderRadius: 5,
     overflow: "hidden",
+    height: 35,
   },
   switchOption: {
     paddingVertical: 6,
-    paddingHorizontal: 13,
+    paddingHorizontal: 18,
     justifyContent: "center",
     alignItems: "center",
   },
