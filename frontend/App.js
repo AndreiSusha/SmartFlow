@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useFonts } from 'expo-font';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator,TouchableOpacity,Text } from 'react-native';
 
 import RegisterScreen from './screens/RegisterScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -60,7 +60,14 @@ const App = () => {
         <Stack.Screen
           name="UserDetails"
           component={UserDetails}
-          options={{ headerShown: true }}
+          options={{ headerShown: true,
+            title: "User Details",
+          headerRight: () => (
+            <TouchableOpacity onPress={() => alert('Menu clicked!')} style={{ marginRight: 15 }}>
+              <Text style={{ fontSize: 30, marginBottom: 5, marginRight: 15, color: '#53B6C7' }}>...</Text>
+            </TouchableOpacity>
+          ),
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

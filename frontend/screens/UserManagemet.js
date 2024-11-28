@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, } 
 from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { UserCard } from '../components/UserCard';
 
 const UserManagement = () => {
   const navigation = useNavigation();
@@ -15,30 +16,16 @@ const UserManagement = () => {
         />
       </View>
 
-      {/* Users Container */}
-      <TouchableOpacity style={styles.userContainer} onPress={() => navigation.navigate("UserDetails")}>
-      
-        <View style={styles.user}>
-          <View style={styles.Image}>
-          </View>
-          <View style={styles.Info}>
-            <Text style={styles.userTitle}>Kristin Watson</Text>
-            <Text style={styles.userBranch}>Asia-Pacific Branch</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.userContainer} onPress={() => navigation.navigate("UserDetails")}>
-      
-        <View style={styles.user}>
-          <View style={styles.Image}>
-          </View>
-          <View style={styles.Info}>
-            <Text style={styles.userTitle}>Kristin Watson</Text>
-            <Text style={styles.userBranch}>Asia-Pacific Branch</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <UserCard
+        name="Kristin Watson"
+        branch="Asia-Pacific Branch"
+        onPress={() => navigation.navigate("UserDetails")}
+      />
+      <UserCard
+        name="Kristin Watson"
+        branch="Asia-Pacific Branch"
+        onPress={() => navigation.navigate("UserDetails")}
+      />
     </View>
   );
 };
