@@ -17,16 +17,49 @@ const pool = mysql.createPool({
   database: process.env.MYSQL_DATABASE
 });
 
-// Define routes
-app.get('/notes', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT * FROM notes');
-    res.json(rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
+pool.getConnection()
+  .then((connection) => {
+    console.log('Connected to the database!');
+    connection.release();
+  })
+  .catch((err) => {
+    console.error('Database connection error: ', err);
+  });
+
+
+  app.get('/co2', async (req, res) => {
+    try {
+      // Correct the table name and column name
+      const [rows] = await pool.query('SELECT value FROM co2_measurements');
+      
+      // Log the result to the console
+      console.log('CO2 Data:', rows);  // Logs the query results
+  
+      res.json(rows);  // Send the data as the response
+    } catch (error) {
+      console.error('Error in fetching CO2 data:', error);
+      res.status(500).json({ error: 'Database error' });
+    }
+  });
+
+  app.get('/humidity', async (req, res) => {
+    try {
+      // Correct the table name and column name
+      const [rows] = await pool.query('SELECT * FROM humidity_measurements');
+      
+      // Log the result to the console
+      console.log('CO2 Data:', rows);  // Logs the query results
+  
+      res.json(rows);  // Send the data as the response
+    } catch (error) {
+      console.error('Error in fetching humidity data:', error);
+      res.status(500).json({ error: 'Database error' });
+    }
+  });
+  
+  
+
+
 
 // Start the server
 const PORT = process.env.PORT || 3000;
