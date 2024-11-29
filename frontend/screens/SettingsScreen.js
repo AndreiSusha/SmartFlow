@@ -7,9 +7,13 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 
 export default function SettingsScreen() {
+  const navigation = useNavigation();
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
@@ -31,7 +35,11 @@ export default function SettingsScreen() {
             <Ionicons name="people-outline" size={24} color="#A0C287" />
           </View>
           <View style={styles.optionTextContainer}>
-            <Text style={styles.optionTitle}>User Management</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("AssetManagement")}
+            >
+              <Text style={styles.optionTitle}>User Management</Text>
+            </TouchableOpacity>
             <Text style={styles.optionSubtitle}>Manage Users</Text>
           </View>
           <View style={styles.arrowContainer}>

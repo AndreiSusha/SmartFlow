@@ -7,8 +7,16 @@ const Stack = createStackNavigator();
 
 const ReportsNavigator = () => {
   return (
-    <Stack.Navigator screenOptions={{headerBackTitle: ""}}>
-      <Stack.Screen name="ReportsOverview" component={ReportsScreen}/>
+    <Stack.Navigator screenOptions={{ headerBackTitle: "" }}>
+      <Stack.Screen
+        name="ReportsOverview"
+        component={ReportsScreen}
+        options={{
+          headerTitle: "Insights & Reports",
+          headerTintColor: "#53B6C7",
+          headerLeft: () => null,
+        }}
+      />
       <Stack.Screen name="Report" component={ReportDetails} />
     </Stack.Navigator>
   );
