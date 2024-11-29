@@ -1,4 +1,3 @@
-import { View, Text } from "react-native";
 import React from "react";
 import ReportsScreen from "../screens/Reports/ReportsScreen";
 import ReportDetails from "../screens/Reports/ReportDetails";
@@ -8,8 +7,8 @@ const Stack = createStackNavigator();
 
 const ReportsNavigator = () => {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="ReportsOverview" component={ReportsScreen} />
+    <Stack.Navigator screenOptions={{headerBackTitle: ""}}>
+      <Stack.Screen name="ReportsOverview" component={ReportsScreen}/>
       <Stack.Screen name="Report" component={ReportDetails} />
     </Stack.Navigator>
   );
