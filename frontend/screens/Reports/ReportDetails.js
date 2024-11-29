@@ -13,6 +13,13 @@ const ReportDetails = () => {
     cost: (Math.random() * 10 + 5) * 0.2,
   }));
 
+
+  const DATA_WEEKLY = Array.from({ length: 7 }, (_, i) => ({
+    day: i + 1,
+    kWh: Math.random() * 10 + 5,
+    cost: (Math.random() * 10 + 5) * 0.2,
+  }));
+
   const DATA_MONTHLY = Array.from({ length: 13 }, (_, i) => {
     const weekStartDate = new Date(today);
     weekStartDate.setDate(weekStartDate.getDate() - (12 - i) * 7);
@@ -48,6 +55,11 @@ const ReportDetails = () => {
   }, [navigation]);
 
   return (
+    <ElectricityReport
+      weekly_data={DATA_WEEKLY}
+      monthly_data={DATA_MONTHLY}
+      yearly_data={DATA_YEARLY}
+    />
     <ElectricityReport
       weekly_data={DATA_WEEKLY}
       monthly_data={DATA_MONTHLY}
