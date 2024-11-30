@@ -35,19 +35,18 @@ export default function SettingsScreen() {
             <Ionicons name="people-outline" size={24} color="#A0C287" />
           </View>
           <View style={styles.optionTextContainer}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("AssetManagement")}
-            >
               <Text style={styles.optionTitle}>User Management</Text>
-            </TouchableOpacity>
-            <Text style={styles.optionSubtitle}>Manage Users</Text>
+              <Text style={styles.optionSubtitle}>Manage Users</Text>
           </View>
           <View style={styles.arrowContainer}>
             <MaterialIcons name="chevron-right" size={24} color="#777" />
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => navigation.navigate("AssetManagement")}
+        >
           <View style={styles.iconContainer}>
             <MaterialIcons name="location-on" size={24} color="#A0C287" />
           </View>
