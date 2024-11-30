@@ -9,17 +9,19 @@ import {
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import BackButton from '../components/BackButton';
+import { useAuthStore } from '../stores/authStore';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
+  const login = useAuthStore((state) => state.login);
 
-  const login = () => {
+  const handleLogin = () => {
     // Login logic here
     console.log('Logging in with:', email, password);
     // Redirect to main screen
-    navigation.navigate('Main');
+    login();
   };
   const handleForgotPassword = () => {
     console.log('Forgot password clicked');
@@ -55,7 +57,7 @@ const LoginScreen = () => {
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
       </TouchableOpacity>
       {/* Login button */}
-      <TouchableOpacity style={styles.button} onPress={login}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
     </View>

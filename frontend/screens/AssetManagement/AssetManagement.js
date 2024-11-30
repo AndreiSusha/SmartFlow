@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { useToastStore } from "../../stores/toastStore";
 
 const ASSETS = [
   {
@@ -25,6 +27,9 @@ const ASSETS = [
 ];
 
 const AssetManagement = () => {
+  const navigation = useNavigation();
+  const {showToast} = useToastStore();
+
   return (
     <View style={{ flex: 1 }}>
       {ASSETS.map((asset) => (
@@ -36,7 +41,10 @@ const AssetManagement = () => {
         />
       ))}
 
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate("ChooseAssetType")}
+      >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
     </View>

@@ -11,7 +11,7 @@ import SettingsNavigator from "./SettingsNavigator";
 
 const Tab = createBottomTabNavigator();
 
-const MyTabs = () => (
+const TabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -45,4 +45,4 @@ const MyTabs = () => (
   </Tab.Navigator>
 );
 
-export default MyTabs;
+export default TabNavigator;

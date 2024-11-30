@@ -1,5 +1,5 @@
 import React from "react";
-import { FlatList, StyleSheet } from "react-native";
+import { FlatList} from "react-native";
 import { reportsData } from "../../mockData";
 import ReportsCard from "../../components/ReportsCard";
 import { useNavigation } from "@react-navigation/native";
@@ -26,5 +26,3 @@ const ReportsScreen = () => {
 };
 
 export default ReportsScreen;
-
-const styles = StyleSheet.create({});

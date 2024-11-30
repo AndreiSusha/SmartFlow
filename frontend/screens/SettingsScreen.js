@@ -10,9 +10,11 @@ import {
 import { useNavigation } from "@react-navigation/native";
 
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { useAuthStore } from "../stores/authStore";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <ScrollView style={styles.container}>
@@ -87,7 +89,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton}>
+      <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
         <View style={styles.iconContainer}>
           <MaterialIcons name="logout" size={20} color="#fff" />
         </View>
@@ -100,7 +102,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
     paddingHorizontal: 20,
   },
   profileContainer: {
