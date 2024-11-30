@@ -28,7 +28,6 @@ const ASSETS = [
 
 const AssetManagement = () => {
   const navigation = useNavigation();
-  const {showToast} = useToastStore();
 
   return (
     <View style={{ flex: 1 }}>

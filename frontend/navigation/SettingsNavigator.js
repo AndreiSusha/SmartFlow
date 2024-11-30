@@ -17,7 +17,7 @@ const SettingsNavigator = () => {
       }}
     >
       <Stack.Screen
-        name="Settings"
+        name="SettingsScreen"
         component={SettingsScreen}
         options={{
           headerTitle: "Settings",
