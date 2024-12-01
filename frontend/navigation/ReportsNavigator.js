@@ -1,7 +1,7 @@
-import React from "react";
-import ReportsScreen from "../screens/Reports/ReportsScreen";
-import ReportDetails from "../screens/Reports/ReportDetails";
-import { createStackNavigator } from "@react-navigation/stack";
+import React from 'react';
+import ReportsScreen from '../screens/Reports/ReportsScreen';
+import ReportDetails from '../screens/Reports/ReportDetails';
+import { createStackNavigator } from '@react-navigation/stack';
 
 const Stack = createStackNavigator();
 
