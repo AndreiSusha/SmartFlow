@@ -1,52 +1,53 @@
-
 import {
   StyleSheet,
   Text,
   View,
   TextInput,
   TouchableOpacity,
-} from 'react-native';
-import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import BackButton from '../components/BackButton';
+} from "react-native";
+import React, { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import BackButton from "../components/BackButton";
+import { useAuthStore } from "../stores/authStore";
+import Button from "@components/Button";
+import Input from "@components/Input";
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigation = useNavigation();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const login = useAuthStore((state) => state.login);
 
-  const login = () => {
+  const handleLogin = () => {
     // Login logic here
-    console.log('Logging in with:', email, password);
+    console.log("Logging in with:", email, password);
     // Redirect to main screen
-    navigation.navigate('Main');
+    login();
   };
   const handleForgotPassword = () => {
-    console.log('Forgot password clicked');
+    console.log("Forgot password clicked");
     // Logic to handle forgot password
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome back! Glad to see you, Again</Text>
-      {/* Input block */}
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        placeholderTextColor="#D9D9D9"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        placeholderTextColor="#D9D9D9"
-      />
+      <View style={{ gap: 16, width: "100%" }}>
+        <Input
+          placeholder="Enter your email"
+          keyboardType="email-address"
+          value={email}
+          label={"Email"}
+          onUpdateValue={(text) => setEmail(text)}
+        />
+        <Input
+          placeholder={"Enter your password"}
+          value={password}
+          label={"Password"}
+          onUpdateValue={(text) => setPassword(text)}
+          secureTextEntry
+        />
+      </View>
+
       {/* Forgot Password link */}
       <TouchableOpacity
         style={styles.forgotPasswordContainer}
@@ -55,9 +56,7 @@ const LoginScreen = () => {
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
       </TouchableOpacity>
       {/* Login button */}
-      <TouchableOpacity style={styles.button} onPress={login}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      <Button onPress={handleLogin}>Login</Button>
     </View>
   );
 };
@@ -67,53 +66,41 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: 62,
+    alignItems: "flex-start",
     padding: 16,
-    backgroundColor: '#F2F2F2',
+    backgroundColor: "#F2F2F2",
+    paddingHorizontal: 32,
   },
   title: {
     fontSize: 30,
-    fontFamily: 'Urbanist-Bold',
-    color: '#53B6C7',
+    fontFamily: "Urbanist-Bold",
+    color: "#53B6C7",
     marginBottom: 28,
   },
   input: {
     height: 56,
-    width: 333,
-    borderColor: '#53B6C7',
+    width: "100%",
+    borderColor: "#53B6C7",
     borderWidth: 0,
     borderBottomWidth: 1.5,
-    borderBottomColor: '#53B6C7',
+    borderBottomColor: "#53B6C7",
     borderRadius: 8,
     paddingHorizontal: 18,
     marginBottom: 13,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
-    fontFamily: 'Urbanist-Regular',
+    backgroundColor: "#FFFFFF",
+    overflow: "hidden",
+    fontFamily: "Urbanist-Regular",
   },
 
   forgotPasswordContainer: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginBottom: 13,
+    marginTop: 8,
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#8391A1',
-    fontFamily: 'Urbanist-Regular',
-  },
-  button: {
-    height: 56,
-    width: 333,
-    backgroundColor: '#53B6C7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginTop: 16,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontFamily: 'Urbanist-Regular',
+    color: "#8391A1",
+    fontFamily: "Urbanist-Regular",
   },
 });

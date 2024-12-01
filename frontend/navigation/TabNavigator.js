@@ -1,16 +1,17 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import ReportsScreen from "../screens/Reports/ReportsScreen";
+import HomeScreen from "../screens/HomeScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import Test from "../screens/test";
+import ReportsNavigator from "./ReportsNavigator";
+import SettingsNavigator from "./SettingsNavigator";
 
-import ReportsScreen from '../screens/Reports/ReportsScreen';
-import HomeScreen from '../screens/HomeScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import Test from '../screens/test';
-import ReportsNavigator from './ReportsNavigator';
 
 const Tab = createBottomTabNavigator();
 
-const MyTabs = () => (
+const TabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -35,13 +36,13 @@ const MyTabs = () => (
     <Tab.Screen
       name="Reports"
       component={ReportsNavigator}
-      options={{ headerShown: false, headerTitle: 'Reports' }}
+      options={{ headerShown: false }}
     />
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen name="Settings" component={SettingsNavigator} />
 
     {/* <Tab.Screen name="Test" component={Test} /> */}
   </Tab.Navigator>
 );
 
-export default MyTabs;
+export default TabNavigator;
