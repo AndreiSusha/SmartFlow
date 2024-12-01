@@ -21,7 +21,7 @@ export default function SettingsScreen() {
       {/* Profile Section */}
       <View style={styles.profileContainer}>
         <Image
-          source={require("../assets/Ellipse136.png")}
+          source={require("@assets/images/Ellipse136.png")}
           style={styles.profileImage}
         />
         <View>

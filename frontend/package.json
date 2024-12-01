@@ -15,6 +15,7 @@
     "@react-navigation/stack": "^7.0.12",
     "@shopify/react-native-skia": "^1.5.0",
     "axios": "^1.7.8",
+    "babel-plugin-module-resolver": "^5.0.2",
     "expo": "~52.0.11",
     "expo-av": "~15.0.1",
     "expo-font": "~13.0.1",
@@ -37,7 +38,9 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.0"
+    "@babel/core": "^7.26.0",
+    "@types/react": "^18.3.12",
+    "typescript": "^5.7.2"
   },
   "private": true
 }

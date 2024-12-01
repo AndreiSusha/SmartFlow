@@ -10,6 +10,7 @@ import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import BackButton from '../components/BackButton';
 import { useAuthStore } from '../stores/authStore';
+import Button from '@components/Button';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -57,9 +58,7 @@ const LoginScreen = () => {
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
       </TouchableOpacity>
       {/* Login button */}
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      <Button onPress={handleLogin}>Login</Button>
     </View>
   );
 };
@@ -73,6 +72,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#F2F2F2',
+    paddingHorizontal: 32,
+
   },
   title: {
     fontSize: 30,
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 56,
-    width: 333,
+    width: '100%',
     borderColor: '#53B6C7',
     borderWidth: 0,
     borderBottomWidth: 1.5,
@@ -104,18 +105,6 @@ const styles = StyleSheet.create({
     color: '#8391A1',
     fontFamily: 'Urbanist-Regular',
   },
-  button: {
-    height: 56,
-    width: 333,
-    backgroundColor: '#53B6C7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginTop: 16,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontFamily: 'Urbanist-Regular',
-  },
+
+
 });
