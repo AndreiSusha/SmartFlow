@@ -1,14 +1,77 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import ReportCard from '../components/ReportCard';
+import Chart from '../components/Chart';
 
-const HomeScreen = () => {
+const HomeScreen = ({ route }) => {
+  const { role } = route.params || { role: 'user' };
+
   return (
-    <View>
-      <Text>HomeScreen</Text>
-    </View>
+    <ScrollView style={styles.container}>
+      {/* Title */}
+      <Text style={styles.title}>Consumption Overview</Text>
+
+      {/* Chart */}
+      {/* <Chart role={role} /> */}
+
+      {/* Reports */}
+      <View style={styles.subtitleRow}>
+        <Text style={styles.subtitle}>Monthly reports</Text>
+        <TouchableOpacity>
+          <Text style={styles.viewAll}>View All</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Report Cards */}
+      <View style={styles.cardGrid}>
+        <ReportCard title="Electricity" value="200 kWh" />
+        <ReportCard title="Water" value="1500 L" />
+        <ReportCard title="Gas" value="80 m³" />
+        <ReportCard title="Internet" value="300 GB" />
+      </View>
+    </ScrollView>
   );
 };
 
-const styles = StyleSheet.create({});
-
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 22,
+    fontFamily: 'Inter-SemiBold',
+    color: '#000000',
+    marginBottom: 12,
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 15,
+    fontFamily: 'Inter-SemiBold',
+    color: '#000000',
+  },
+  viewAll: {
+    fontSize: 15,
+    fontFamily: 'Inter-Medium',
+    color: '#A0C287',
+  },
+  cardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    padding: 7,
+  },
+});

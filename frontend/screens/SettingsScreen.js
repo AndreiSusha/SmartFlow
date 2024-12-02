@@ -7,19 +7,24 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+
+import { useNavigation } from "@react-navigation/native";
+
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { useAuthStore } from "../stores/authStore";
 
 export default function SettingsScreen() {
 
   const navigation = useNavigation();
+  const logout = useAuthStore((state) => state.logout);
+
 
   return (
     <ScrollView style={styles.container}>
       {/* Profile Section */}
       <View style={styles.profileContainer}>
         <Image
-          source={require("../assets/Ellipse136.png")}
+          source={require("@assets/images/Ellipse136.png")}
           style={styles.profileImage}
         />
         <View>
@@ -35,15 +40,18 @@ export default function SettingsScreen() {
             <Ionicons name="people-outline" size={24} color="#A0C287" />
           </View>
           <View style={styles.optionTextContainer}>
-            <Text style={styles.optionTitle}>User Management</Text>
-            <Text style={styles.optionSubtitle}>Manage Users</Text>
+              <Text style={styles.optionTitle}>User Management</Text>
+              <Text style={styles.optionSubtitle}>Manage Users</Text>
           </View>
           <View style={styles.arrowContainer}>
             <MaterialIcons name="chevron-right" size={24} color="#777" />
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => navigation.navigate("AssetManagement")}
+        >
           <View style={styles.iconContainer}>
             <MaterialIcons name="location-on" size={24} color="#A0C287" />
           </View>
@@ -84,7 +92,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton}>
+      <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
         <View style={styles.iconContainer}>
           <MaterialIcons name="logout" size={20} color="#fff" />
         </View>
@@ -97,7 +105,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9f9f9",
     paddingHorizontal: 20,
   },
   profileContainer: {
