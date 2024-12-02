@@ -7,14 +7,17 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+
 import { useNavigation } from "@react-navigation/native";
 
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useAuthStore } from "../stores/authStore";
 
 export default function SettingsScreen() {
+
   const navigation = useNavigation();
   const logout = useAuthStore((state) => state.logout);
+
 
   return (
     <ScrollView style={styles.container}>
@@ -32,7 +35,7 @@ export default function SettingsScreen() {
 
       {/* Settings Options */}
       <View style={styles.settingsContainer}>
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("UserManagement")}>
           <View style={styles.iconContainer}>
             <Ionicons name="people-outline" size={24} color="#A0C287" />
           </View>
