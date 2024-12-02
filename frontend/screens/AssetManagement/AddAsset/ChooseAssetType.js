@@ -1,27 +1,41 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 
-const assetTypes = [
-  {
-    id: 1,
-    name: "Vechile",
-    icon: "car-outline",
-  },
-  {
-    id: 2,
-    name: "Corporate Property",
-    icon: "business-outline",
-  },
-  {
-    id: 3,
-    name: "Rental Apartment",
-    icon: "home-outline",
-  },
-];
 
 const ChooseAssetType = () => {
+  const [assetTypes, setAssetTypes] = useState([]); // State to store asset types
   const [selectedAssetType, setSelectedAssetType] = useState(null);
+
+  // Fetch asset types from the backend
+  useEffect(() => {
+    const fetchAssetTypes = async () => {
+      try {
+        const response = await fetch("http://your_ip_address:3000/api/asset-types");
+        const data = await response.json();
+        setAssetTypes(data); // Set the fetched data to state
+      } catch (error) {
+        console.error("Error fetching asset types:", error);
+      }
+    };
+
+    fetchAssetTypes();
+  }, []);
+
+  const getIconForType = (typeName) => {
+    switch (typeName) {
+      case "Vehicle":
+        return "car-outline";
+      case "Corporate Property":
+        return "business-outline";
+      case "Rental Apartment":
+        return "home-outline";
+      case "Building":
+        return "cube-outline";
+      default:
+        return "help-outline"; // Default icon
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -38,8 +52,8 @@ const ChooseAssetType = () => {
                 ]}
               >
                 <View style={styles.cardInitials}>
-                  <Ionicons name={assetType.icon} size={30} color="black" />
-                  <Text style={styles.name}>{assetType.name}</Text>
+                  <Ionicons name={getIconForType(assetType.type_name)} size={30} color="black" />
+                  <Text style={styles.name}>{assetType.type_name}</Text>
                 </View>
                 {selectedAssetType === assetType.id && (
                   <Ionicons

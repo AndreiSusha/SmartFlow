@@ -1,44 +1,42 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity,ScrollView, } from "react-native";
+import React, { useEffect, useState } from "react";
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
 
-const ASSETS = [
-  {
-    id: 1,
-    title: "Asset 1",
-    address: "123 Main St",
-    users: 5,
-  },
-  {
-    id: 2,
-    title: "Asset 2",
-    address: "456 Elm St",
-    users: 3,
-  },
-  {
-    id: 3,
-    title: "Asset 3",
-    address: "789 Oak St",
-    users: 2,
-  },
-];
 
 const AssetManagement = () => {
+  const [assets, setAssets] = useState([]); // State to hold assets data
   const navigation = useNavigation();
+
+    // Fetch assets data from the backend API
+    useEffect(() => {
+      const fetchAssets = async () => {
+        try {
+          const response = await fetch("http://your_ip_address:3000/api/assets");
+          const data = await response.json();
+          setAssets(data);
+        } catch (error) {
+          console.error("Error fetching assets:", error);
+        }
+      };
+  
+      fetchAssets();
+    }, []); // Empty dependency array ensures this runs once after the initial render
 
   return (
     <View style={{ flex: 1 }}>
-      {ASSETS.map((asset) => (
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {assets.map((asset,index) => (
         <AssetCard
-          key={asset.id}
-          title={asset.title}
-          address={asset.address}
-          users={asset.users}
+          key={index}
+          title={asset.asset.name}
+          address={asset.location.address}
+          users={asset.usersAssigned}
         />
       ))}
+      </ScrollView>
 
       <TouchableOpacity
         style={styles.fab}

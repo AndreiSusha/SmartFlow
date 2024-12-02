@@ -42,29 +42,35 @@ pool.getConnection()
     }
   });
   
- // API endpoint to add location data
- app.get('/api/add-locations', async (req, res) => {
+ // API endpoint to see the assets
+ app.get('/api/assets', async (req, res) => {
   const query = `
     SELECT 
       l.id AS location_id,
       l.country,
       l.city,
       l.address,
+      a.name AS asset_name,
       COUNT(DISTINCT ua.user_id) AS users_assigned
     FROM locations l
     LEFT JOIN assets a ON l.id = a.location_id
     LEFT JOIN user_assets ua ON a.id = ua.asset_id
-    GROUP BY l.id, l.country, l.city, l.address;
+    GROUP BY l.id, l.country, l.city, l.address, a.name;
   `;
 
   try {
     const [results] = await pool.query(query); // Execute the query
 
     const formattedResults = results.map(row => ({
-      id: row.location_id,
-      name: `${row.country}, ${row.city}`, // Format country and city
-      address: row.address,
-      usersAssigned: row.users_assigned
+      location: {
+        id: row.location_id,
+        name: `${row.country}, ${row.city}`, // Format country and city
+        address: row.address,
+      },
+      asset: {
+        name: row.asset_name, // Asset name
+      },
+      usersAssigned: row.users_assigned,
     }));
 
     res.json(formattedResults); // Send the formatted response
@@ -73,6 +79,7 @@ pool.getConnection()
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
+
 
 
 // API endpoint for the asset type
@@ -224,27 +231,25 @@ app.get('/api/asset-details/:id', async (req, res) => {
   }
 });
 
-// API endpoint to see user based on ID
+
+// API endpoint to see user details based on ID
 app.get('/api/users/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
-    // Query to fetch user details
     const userQuery = `
       SELECT 
         u.username AS user_name,
         u.email AS user_email,
-        CONCAT('+1-234-567-8900') AS phone_number, -- Placeholder phone number
-        r.role_name AS role_name, -- Assuming role names are stored in a 'roles' table
-        u.created_at AS created_at, 
-        c.name AS customer_name, -- Assuming customers table stores customer details
-        a.name AS assigned_location
+        u.phone_number AS phone_number,
+        u.user_summary AS user_summary,
+        u.last_active AS last_active,
+        GROUP_CONCAT(a.name) AS assigned_assets
       FROM users u
-      LEFT JOIN roles r ON u.role_id = r.id
-      LEFT JOIN customers c ON u.customer_id = c.id
       LEFT JOIN user_assets ua ON u.id = ua.user_id
       LEFT JOIN assets a ON ua.asset_id = a.id
-      WHERE u.id = ?;
+      WHERE u.id = ?
+      GROUP BY u.id;
     `;
 
     const [userDetails] = await pool.query(userQuery, [userId]);
@@ -253,7 +258,7 @@ app.get('/api/users/:id', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Respond with user details
+    // Return the raw data directly
     res.json(userDetails[0]);
   } catch (err) {
     console.error('Error fetching user details:', err);
@@ -262,10 +267,15 @@ app.get('/api/users/:id', async (req, res) => {
 });
 
 
-// API endpoint to edit location  
-app.put('/api/locations/:id', async (req, res) => {
-  const locationId = req.params.id;
-  const { country, address, description } = req.body; 
+
+
+
+// API endpoint to edit asset details
+app.put('/api/asset/:id', async (req, res) => {
+  const assetId = req.params.id; // Use asset_id from the URL
+  const { name, address, description } = req.body;
+
+  let connection;
 
   try {
     // Initialize variables for dynamic query building
@@ -275,68 +285,74 @@ app.put('/api/locations/:id', async (req, res) => {
     const assetValues = [];
 
     // Check for each field and add it to the update query if provided
-    if (country) {
-      locationFieldsToUpdate.push('country = ?'); 
-      locationValues.push(country);
-    }
     if (address) {
       locationFieldsToUpdate.push('address = ?');
       locationValues.push(address);
     }
+
+    if (name) {
+      assetFieldsToUpdate.push('name = ?');
+      assetValues.push(name);
+    }
+
     if (description) {
       assetFieldsToUpdate.push('description = ?');
       assetValues.push(description);
     }
 
-    // Start a transaction
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
     await connection.beginTransaction();
 
-    // Update the `locations` table if there are fields to update
+    // Update the `locations` table if address is provided
     if (locationFieldsToUpdate.length > 0) {
       const locationQuery = `
         UPDATE locations
         SET ${locationFieldsToUpdate.join(', ')}
-        WHERE id = ?
+        WHERE id = (SELECT location_id FROM assets WHERE id = ?)
       `;
-      locationValues.push(locationId); // Add `id` to the query parameters
+      locationValues.push(assetId); // Use `asset_id` to find the associated location
       const [locationResult] = await connection.query(locationQuery, locationValues);
 
       if (locationResult.affectedRows === 0) {
-        throw new Error('Location not found');
+        console.warn('No associated location found for the given asset. Skipping location update.');
       }
     }
 
-    // Update the `assets` table if there are fields to update
+    // Update the `assets` table if name or description is provided
     if (assetFieldsToUpdate.length > 0) {
       const assetQuery = `
         UPDATE assets
         SET ${assetFieldsToUpdate.join(', ')}
-        WHERE location_id = ?
+        WHERE id = ?
       `;
-      assetValues.push(locationId); // Use `location_id` to identify the asset
+      assetValues.push(assetId); // Use `asset_id` to update the asset
       const [assetResult] = await connection.query(assetQuery, assetValues);
 
       if (assetResult.affectedRows === 0) {
-        throw new Error('Asset not found for the given location');
+        throw new Error('Asset not found');
       }
     }
 
     // Commit the transaction
     await connection.commit();
-    res.json({ message: 'Location and asset details updated successfully' });
+    res.json({ message: 'Asset details updated successfully' });
 
   } catch (err) {
-    // Rollback the transaction on error
-    console.error('Error updating location and asset details:', err);
-    res.status(500).json({ error: 'Failed to update location and asset details' });
+    if (connection) await connection.rollback(); // Rollback transaction in case of error
+    console.error('Error updating asset details:', err);
+    res.status(500).json({ error: 'Failed to update asset details', details: err.message });
+  } finally {
+    if (connection) {
+      connection.release(); // Release the database connection
+    }
   }
 });
 
 
-// API endpoint to delete a location
-app.delete('/api/locations/:id', async (req, res) => {
-  const locationId = req.params.id;
+
+// API endpoint to delete an asset
+app.delete('/api/assets/:id', async (req, res) => {
+  const assetId = req.params.id;
 
   const connection = await pool.getConnection();
 
@@ -344,35 +360,42 @@ app.delete('/api/locations/:id', async (req, res) => {
     // Start a transaction
     await connection.beginTransaction();
 
-    // Delete related assets (if required)
-    const deleteAssetsQuery = `
-      DELETE FROM assets WHERE location_id = ?
+    // Delete related data from asset_measurements
+    const deleteAssetMeasurementsQuery = `
+      DELETE FROM asset_measurements WHERE asset_id = ?
     `;
-    await connection.query(deleteAssetsQuery, [locationId]);
+    await connection.query(deleteAssetMeasurementsQuery, [assetId]);
 
-    // Delete the location itself
-    const deleteLocationQuery = `
-      DELETE FROM locations WHERE id = ?
+    // Delete related data from user_assets
+    const deleteUserAssetsQuery = `
+      DELETE FROM user_assets WHERE asset_id = ?
     `;
-    const [result] = await connection.query(deleteLocationQuery, [locationId]);
+    await connection.query(deleteUserAssetsQuery, [assetId]);
+
+    // Finally, delete the asset itself
+    const deleteAssetQuery = `
+      DELETE FROM assets WHERE id = ?
+    `;
+    const [result] = await connection.query(deleteAssetQuery, [assetId]);
 
     if (result.affectedRows === 0) {
-      throw new Error('Location not found');
+      throw new Error('Asset not found');
     }
 
     // Commit the transaction
     await connection.commit();
 
-    res.json({ message: 'Location and associated assets deleted successfully' });
+    res.json({ message: 'Asset and all related records deleted successfully' });
   } catch (err) {
     // Rollback the transaction in case of an error
     await connection.rollback();
-    console.error('Error deleting location:', err);
-    res.status(500).json({ error: 'Failed to delete location' });
+    console.error('Error deleting asset:', err);
+    res.status(500).json({ error: 'Failed to delete asset' });
   } finally {
     connection.release(); // Release the database connection
   }
 });
+
   // Fetch users of a particular customer
 // Fetch users of a particular customer
 app.get('/users/:customer_id', async (req, res) => {
