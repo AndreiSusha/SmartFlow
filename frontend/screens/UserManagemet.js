@@ -1,31 +1,67 @@
-import React from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, } 
-from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, TextInput, ActivityIndicator } from 'react-native';
+import axios from 'axios';
 import { UserCard } from '../components/UserCard';
+import { useNavigation } from '@react-navigation/native';
 
 const UserManagement = () => {
+  const [users, setUsers] = useState([]); // State for users
+  const [loading, setLoading] = useState(true); // State for loading
+  const [search, setSearch] = useState(''); // State for search
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://192.168.0.103:3000/users/3');
+        console.log('Response data:', response.data); // Log response data
+
+        // Filter users with role_id 2
+        const filteredUsers = response.data.filter(user => user.role_id === 2);
+
+        setUsers(filteredUsers); // Update state with filtered users
+      } catch (error) {
+        console.error('Error fetching users:', error); // Log any errors
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // Filter users for search (by username)
+  const filteredUsers = users.filter((user) =>
+    user.username.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       {/* Search Container */}
       <View style={styles.searchContainer}>
-        <TextInput 
-          style={styles.searchInput} 
+        <TextInput
+          style={styles.searchInput}
           placeholder="Search users..."
+          value={search}
+          onChangeText={setSearch}
         />
       </View>
 
-      <UserCard
-        name="Kristin Watson"
-        branch="Asia-Pacific Branch"
-        onPress={() => navigation.navigate("UserDetails")}
-      />
-      <UserCard
-        name="Kristin Watson"
-        branch="Asia-Pacific Branch"
-        onPress={() => navigation.navigate("UserDetails")}
-      />
+      {/* Display Users */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : filteredUsers.length > 0 ? (
+        filteredUsers.map((user) => (
+          <UserCard
+            key={user.id}
+            name={user.username}
+            branch="Asia-Pacific Branch"
+            onPress={() => navigation.navigate('UserDetails', { userId: user.id })}
+          />
+        ))
+      ) : (
+        <Text>No users found</Text>
+      )}
     </View>
   );
 };
@@ -34,20 +70,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff'
-  
+    backgroundColor: 'transparent',
   },
   searchContainer: {
     width: '100%',
-    marginBottom: 10, 
+    marginBottom: 10,
     padding: 10,
-    borderRadius: 8,
-    elevation: 3, 
-    shadowColor: '#000', // Shadow color (black in this case)
-    shadowOffset: { width: 0, height: 2 }, // Position of the shadow
-    shadowOpacity: 0.1, // Opacity of the shadow
-    shadowRadius: 4, // Blurriness of the shadow
-
+    backgroundColor: 'transparent', 
   },
   searchInput: {
     width: '100%',
@@ -56,46 +85,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginBottom: 10,
     height: 50,
-    borderWidth: 1, 
+    borderWidth: 1,
     borderColor: '#ccc',
-  },
-  userContainer: {
-    width: '100%',
-    padding: 10,
-    borderRadius: 8,
- 
-  },
-  user: {
-    flexDirection: 'row', 
-    padding: 12, 
-    borderWidth: 1, 
-    borderColor: '#e0e0e0', 
-    borderRadius: 16,
-    shadowColor: '#000', // Shadow color (black in this case)
-    shadowOffset: { width: 0, height: 2 }, // Position of the shadow
-    shadowOpacity: 0.1, // Opacity of the shadow
-    shadowRadius: 4, // Blurriness of the shadow
-  },
-  Image: {
-    width: 80, 
-    height: 80, 
-    backgroundColor: '#e0e0e0', 
-    borderRadius: 50, 
-    marginRight: 5, 
-  },
-  Info: {
-    flex: 1,
-    padding: 10,
-  },
-  userTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 5, 
-    color: '#333', 
-  },
-  userBranch: {
-    fontSize: 14,
-    color: '#777', 
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
 });
 
