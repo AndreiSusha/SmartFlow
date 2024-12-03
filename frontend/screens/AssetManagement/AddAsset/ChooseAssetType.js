@@ -1,36 +1,24 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-
-const assetTypes = [
-  {
-    id: 1,
-    name: "Vechile",
-    icon: "car-outline",
-  },
-  {
-    id: 2,
-    name: "Corporate Property",
-    icon: "business-outline",
-  },
-  {
-    id: 3,
-    name: "Rental Apartment",
-    icon: "home-outline",
-  },
-];
+import Button from "@components/Button";
+import { useNavigation } from "@react-navigation/native";
+import { assetTypes } from "../../../constants/assetTypes";
+import { defaultStyles } from "@styles/defaultStyles";
 
 const ChooseAssetType = () => {
-  const [selectedAssetType, setSelectedAssetType] = useState(null);
+  const [selectedAssetTypeId, setSelectedAssetTypeId] = useState(null);
+
+  const navigation = useNavigation();
 
   return (
-    <View style={styles.container}>
+    <View style={defaultStyles.container}>
       <View style={styles.optionsContainer}>
         <View style={styles.optionsBlock}>
           {assetTypes.map((assetType, index) => {
             return (
               <TouchableOpacity
-                onPress={() => setSelectedAssetType(assetType.id)}
+                onPress={() => setSelectedAssetTypeId(assetType.id)}
                 key={assetType.id}
                 style={[
                   styles.selectionCard,
@@ -41,7 +29,7 @@ const ChooseAssetType = () => {
                   <Ionicons name={assetType.icon} size={30} color="black" />
                   <Text style={styles.name}>{assetType.name}</Text>
                 </View>
-                {selectedAssetType === assetType.id && (
+                {selectedAssetTypeId === assetType.id && (
                   <Ionicons
                     name={"checkmark-circle-outline"}
                     size={30}
@@ -54,18 +42,19 @@ const ChooseAssetType = () => {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
-        <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+      <View style={{}}>
+        <Button
+          onPress={() => navigation.navigate("AssetTitle")}
+          isDisabled={!selectedAssetTypeId}
+        >
+          Continue
+        </Button>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-  },
   optionsContainer: {
     flex: 1,
     alignItems: "center",
@@ -73,7 +62,7 @@ const styles = StyleSheet.create({
   },
   optionsBlock: {
     backgroundColor: "white",
-    width: "90%",
+    width: "100%",
     marginTop: 20,
     borderRadius: 8,
     padding: 15,

@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
 
 const ASSETS = [
@@ -28,6 +28,15 @@ const ASSETS = [
 
 const AssetManagement = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { showSuccessToast } = route.params || {};
+  const { showToast } = useToastStore();
+
+  useEffect(() => {
+    if (showSuccessToast) {
+      showToast("Success!", "The asset was added successfully.", "success");
+    }
+  }, [showSuccessToast]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -42,7 +51,7 @@ const AssetManagement = () => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate("ChooseAssetType")}
+        onPress={() => navigation.navigate("AddAssetNavigator")}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>
