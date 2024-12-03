@@ -1,17 +1,54 @@
-import { StyleSheet, Text, View } from 'react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import Svg, { Path } from 'react-native-svg'; // Importing Svg and Path from react-native-svg
+import axios from 'axios';
 
+const UserDetails = ({ route }) => {
+  const { userId } = route.params; // Access the userId from route.params
+  const [userDetails, setUserDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-const UserDetails = () => {
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        console.log("Fetching details for user ID:", userId); // Log the userId to check if it's correct
+        const response = await axios.get(`http://192.168.0.103:3000/user/${userId}`);
+        console.log("API Response:", response.data); // Log the response data
+
+        // Check if the response is valid
+        if (response.data) {
+          setUserDetails(response.data);
+        } else {
+          console.error('User details not found');
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchUserDetails();
+    }
+  }, [userId]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  if (!userDetails) {
+    return <Text>No user details found</Text>;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.userInfo}>
         <View style={styles.Image}></View>
         <View style={styles.Info}>
-          <Text style={styles.name}>Kristin Watson</Text>
-          <Text style={styles.email}>Kristin@gmail.com</Text>
+          <Text style={styles.name}>{userDetails.username}</Text>
+          <Text style={styles.email}>{userDetails.email}</Text>
         </View>
       </View>
 
@@ -80,7 +117,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
   },
   userInfo: {
     flexDirection: 'row',
@@ -175,4 +212,5 @@ const styles = StyleSheet.create({
     flex: 1, // Take up remaining space for text
   },
 });
+
 

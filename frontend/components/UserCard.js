@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 10,
     borderRadius: 8,
+    
   },
   user: {
     flexDirection: 'row',
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    backgroundColor: '#fff',
   },
   Image: {
     width: 80,
