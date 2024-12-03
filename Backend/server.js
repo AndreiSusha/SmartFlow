@@ -44,42 +44,86 @@ pool.getConnection()
 
   // Fetch users of a particular customer
 // Fetch users of a particular customer
+// app.get('/users/:customer_id', async (req, res) => {
+//   const customerId = req.params.customer_id;
+
+//   try {
+//     // Use the connection pool to query the database
+//     const [results] = await pool.query('SELECT * FROM users WHERE customer_id = ?', [customerId]);
+
+//     if (results.length === 0) {
+//       return res.status(404).send('No users found for this customer');
+//     }
+
+//     // Return the list of users
+//     res.json(results);
+//   } catch (err) {
+//     console.error('Error fetching users:', err.stack);
+//     res.status(500).send('Error fetching users');
+//   }
+// });
+
 app.get('/users/:customer_id', async (req, res) => {
   const customerId = req.params.customer_id;
 
   try {
-    // Use the connection pool to query the database
-    const [results] = await pool.query('SELECT * FROM users WHERE customer_id = ?', [customerId]);
+    // Query to select everything from the users table, along with their asset details
+    const query = `
+      SELECT u.*, 
+             a.id AS asset_id, a.name AS asset_name, a.asset_type_id, a.location_id, a.created_at AS asset_created_at
+      FROM users u
+      LEFT JOIN user_assets ua ON u.id = ua.user_id
+      LEFT JOIN assets a ON ua.asset_id = a.id
+      WHERE u.customer_id = ?;
+    `;
+
+    // Execute the query with the customer_id parameter
+    const [results] = await pool.query(query, [customerId]);
 
     if (results.length === 0) {
-      return res.status(404).send('No users found for this customer');
+      return res.status(404).send('No users or assets found for this customer');
     }
 
-    // Return the list of users
+    // Return the list of users with their assets
     res.json(results);
   } catch (err) {
-    console.error('Error fetching users:', err.stack);
-    res.status(500).send('Error fetching users');
+    console.error('Error fetching users and assets:', err.stack);
+    res.status(500).send('Error fetching users and assets');
   }
 });
+
+
 
 // Fetch a single user by their id
 app.get('/user/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
-    const [results] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    // Query to join users, user_assets, and assets tables
+    const query = `
+      SELECT u.*,
+             a.id AS asset_id, a.name AS asset_name, a.asset_type_id, a.location_id, a.created_at AS asset_created_at
+      FROM users u
+      LEFT JOIN user_assets ua ON u.id = ua.user_id
+      LEFT JOIN assets a ON ua.asset_id = a.id
+      WHERE u.id = ?;
+    `;
+
+    // Execute the query with the user_id parameter
+    const [results] = await pool.query(query, [userId]);
 
     if (results.length === 0) {
       return res.status(404).send('User not found');
     }
 
-    res.json(results[0]); // Return the single user object
+    // Return the user with their assets
+    res.json(results);
   } catch (err) {
-    console.error('Error fetching user by ID:', err.stack);
-    res.status(500).send('Error fetching user');
+    console.error('Error fetching user by ID and assets:', err.stack);
+    res.status(500).send('Error fetching user and assets');
   }
 });
+
 
 
   // Check if the request body has at least one field to update

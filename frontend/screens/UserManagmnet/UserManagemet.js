@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, TextInput, ActivityIndicator } from 'react-native';
 import axios from 'axios';
-import { UserCard } from '../components/UserCard';
+import { UserCard } from '../../components/userManagmnet/UserCard';
 import { useNavigation } from '@react-navigation/native';
 
 const UserManagement = () => {
@@ -14,7 +14,7 @@ const UserManagement = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get('http://192.168.0.103:3000/users/3');
-        console.log('Response data:', response.data); // Log response data
+        // console.log('Response data:', response.data); // Log response data
 
         // Filter users with role_id 2
         const filteredUsers = response.data.filter(user => user.role_id === 2);
@@ -55,7 +55,7 @@ const UserManagement = () => {
           <UserCard
             key={user.id}
             name={user.username}
-            branch="Asia-Pacific Branch"
+            branch={user.asset_name}
             onPress={() => navigation.navigate('UserDetails', { userId: user.id })}
           />
         ))

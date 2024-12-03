@@ -6,6 +6,7 @@ import {
   Text,
 } from 'react-native';
 import Modal from 'react-native-modal';
+import { Ionicons } from '@expo/vector-icons';
 
 const BottomSheet = ({ visible, onClose, options, onSelect }) => {
   return (
