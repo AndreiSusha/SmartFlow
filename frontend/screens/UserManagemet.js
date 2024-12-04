@@ -4,6 +4,9 @@ import axios from 'axios';
 import { UserCard } from '../components/UserCard';
 import { useNavigation } from '@react-navigation/native';
 
+
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]); // State for users
   const [loading, setLoading] = useState(true); // State for loading
@@ -13,7 +16,7 @@ const UserManagement = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://192.168.0.103:3000/users/3');
+        const response = await axios.get(`${API_IP}/users/3`);
         console.log('Response data:', response.data); // Log response data
 
         // Filter users with role_id 2

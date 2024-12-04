@@ -6,8 +6,8 @@ import { View, ActivityIndicator } from "react-native";
 import AuthNavigator from "./navigation/AuthNavigator";
 import customFonts from "./config/fonts";
 import { useAuthStore } from "./stores/authStore";
-import TabNavigator from "./navigation/TabNavigator";
 import ToastNotification from "./components/ToastNotification";
+import AppNavigator from "./navigation/AppNavigator";
 
 
 const App = () => {
@@ -25,7 +25,7 @@ const App = () => {
   return (
     <>
       <NavigationContainer>
-        {isAuthenticated ? <TabNavigator /> : <AuthNavigator />}
+        {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
       </NavigationContainer>
       <ToastNotification />
     </>

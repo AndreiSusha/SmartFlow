@@ -1,21 +1,39 @@
+// <<<<<<< HEAD
+// import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+// import React, { useEffect } from "react";
+// =======
 import { View, Text, StyleSheet, TouchableOpacity,ScrollView, } from "react-native";
 import React, { useEffect, useState } from "react";
+// >>>>>>> 563c6c3e0c9725ea89834196e4ef02a472fcae90
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
+
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 
 const AssetManagement = () => {
   const [assets, setAssets] = useState([]); // State to hold assets data
   const navigation = useNavigation();
+  const route = useRoute();
+  const { showSuccessToast } = route.params || {};
+  const { showToast } = useToastStore();
+
+  useEffect(() => {
+    if (showSuccessToast) {
+      showToast("Success!", "The asset was added successfully.", "success");
+    }
+  }, [showSuccessToast]);
 
     // Fetch assets data from the backend API
     useEffect(() => {
       const fetchAssets = async () => {
         try {
-          const response = await fetch("http://your_ip_address:3000/api/assets");
+          const response = await fetch(`${API_IP}/api/assets`);
+
           const data = await response.json();
+          console.log(data)
           setAssets(data);
         } catch (error) {
           console.error("Error fetching assets:", error);
@@ -40,7 +58,7 @@ const AssetManagement = () => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate("ChooseAssetType")}
+        onPress={() => navigation.navigate("AddAssetNavigator")}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </TouchableOpacity>

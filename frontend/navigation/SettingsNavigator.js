@@ -6,6 +6,7 @@ import UserDetails from "../screens/UserDetails";
 import AssetManagement from "../screens/AssetManagement/AssetManagement";
 import { Platform } from "react-native";
 import ChooseAssetType from "../screens/AssetManagement/AddAsset/ChooseAssetType";
+import EnterAssetDetails from "../screens/AssetManagement/AddAsset/EnterAssetDetails";
 
 const Stack = createStackNavigator();
 
@@ -58,18 +59,6 @@ const SettingsNavigator = () => {
           },
           title: "Asset Management",
           }}
-      />
-      <Stack.Screen
-        name="ChooseAssetType"
-        component={ChooseAssetType}
-        options={{
-          headerStyle: {
-            backgroundColor: "transparent",
-            elevation: Platform.OS === "android" ? 0 : undefined,
-          },
-          title: "Choose Asset Type",
-          headerBackTitle: "",
-        }}
       />
     </Stack.Navigator>
   );

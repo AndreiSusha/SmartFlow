@@ -4,6 +4,8 @@ import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import Svg, { Path } from 'react-native-svg'; // Importing Svg and Path from react-native-svg
 import axios from 'axios';
 
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 const UserDetails = ({ route }) => {
   const { userId } = route.params; // Access the userId from route.params
   const [userDetails, setUserDetails] = useState(null);
@@ -13,7 +15,7 @@ const UserDetails = ({ route }) => {
     const fetchUserDetails = async () => {
       try {
         console.log("Fetching details for user ID:", userId); // Log the userId to check if it's correct
-        const response = await axios.get(`http://192.168.0.103:3000/user/${userId}`);
+        const response = await axios.get(`${API_IP}/user/${userId}`);
         console.log("API Response:", response.data); // Log the response data
 
         // Check if the response is valid
