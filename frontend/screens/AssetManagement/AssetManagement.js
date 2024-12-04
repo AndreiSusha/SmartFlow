@@ -1,32 +1,20 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React, { useEffect } from "react";
+// <<<<<<< HEAD
+// import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+// import React, { useEffect } from "react";
+// =======
+import { View, Text, StyleSheet, TouchableOpacity,ScrollView, } from "react-native";
+import React, { useEffect, useState } from "react";
+// >>>>>>> 563c6c3e0c9725ea89834196e4ef02a472fcae90
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
 
-const ASSETS = [
-  {
-    id: 1,
-    title: "Asset 1",
-    address: "123 Main St",
-    users: 5,
-  },
-  {
-    id: 2,
-    title: "Asset 2",
-    address: "456 Elm St",
-    users: 3,
-  },
-  {
-    id: 3,
-    title: "Asset 3",
-    address: "789 Oak St",
-    users: 2,
-  },
-];
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 
 const AssetManagement = () => {
+  const [assets, setAssets] = useState([]); // State to hold assets data
   const navigation = useNavigation();
   const route = useRoute();
   const { showSuccessToast } = route.params || {};
@@ -38,16 +26,35 @@ const AssetManagement = () => {
     }
   }, [showSuccessToast]);
 
+    // Fetch assets data from the backend API
+    useEffect(() => {
+      const fetchAssets = async () => {
+        try {
+          const response = await fetch(`${API_IP}/api/assets`);
+
+          const data = await response.json();
+          console.log(data)
+          setAssets(data);
+        } catch (error) {
+          console.error("Error fetching assets:", error);
+        }
+      };
+  
+      fetchAssets();
+    }, []); // Empty dependency array ensures this runs once after the initial render
+
   return (
     <View style={{ flex: 1 }}>
-      {ASSETS.map((asset) => (
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {assets.map((asset,index) => (
         <AssetCard
-          key={asset.id}
-          title={asset.title}
-          address={asset.address}
-          users={asset.users}
+          key={index}
+          title={asset.asset.name}
+          address={asset.location.address}
+          users={asset.usersAssigned}
         />
       ))}
+      </ScrollView>
 
       <TouchableOpacity
         style={styles.fab}

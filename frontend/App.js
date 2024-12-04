@@ -1,3 +1,4 @@
+
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -7,6 +8,7 @@ import customFonts from "./config/fonts";
 import { useAuthStore } from "./stores/authStore";
 import ToastNotification from "./components/ToastNotification";
 import AppNavigator from "./navigation/AppNavigator";
+
 
 const App = () => {
   const [fontsLoaded] = useFonts(customFonts);
@@ -27,6 +29,7 @@ const App = () => {
       </NavigationContainer>
       <ToastNotification />
     </>
+
   );
 };
 
