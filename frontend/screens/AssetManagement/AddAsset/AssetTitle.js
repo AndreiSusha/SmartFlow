@@ -5,16 +5,22 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Button from "@components/Button";
 import Input from "@components/Input";
 import { defaultStyles } from "@styles/defaultStyles";
 import { useNavigation } from "@react-navigation/native";
+import { AssetDataContext } from "../../../util/addAsset-context";
 
 const AssetTitle = () => {
   const [assetName, setAssetName] = useState("");
-
   const navigation = useNavigation();
+  const { updateAssetData } = useContext(AssetDataContext);
+
+  const handleContinue = () => {
+    updateAssetData("assetName", assetName);
+    navigation.navigate("AssetCountry");
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -35,7 +41,7 @@ const AssetTitle = () => {
         <View>
           <Button
             isDisabled={!assetName}
-            onPress={() => navigation.navigate("AssetCountry")}
+            onPress={handleContinue}
           >
             Continue
           </Button>
