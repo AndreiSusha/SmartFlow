@@ -1,30 +1,29 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Button from "@components/Button";
+import { AssetDataContext } from "../../../util/addAsset-context";
 
 const iconMapping = {
   "Corporate Property": "business-outline",
-  "Vehicle": "car-outline",
+  Vehicle: "car-outline",
   "Rental Apartment": "home-outline",
 };
 
 const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-
 const ChooseAssetType = () => {
   const [selectedAssetType, setSelectedAssetType] = useState(null);
   const [assetTypes, setAssetTypes] = useState([]);
   const navigation = useNavigation();
+  const { updateAssetData } = useContext(AssetDataContext);
 
   // Fetch asset types from the backend
   useEffect(() => {
     const fetchAssetTypes = async () => {
       try {
-        const response = await fetch(
-          `${API_IP}/api/asset-types`
-        ); // Replace with your API endpoint
+        const response = await fetch(`${API_IP}/api/asset-types`); // Replace with your API endpoint
         const data = await response.json();
         setAssetTypes(data);
       } catch (error) {
@@ -34,6 +33,16 @@ const ChooseAssetType = () => {
 
     fetchAssetTypes();
   }, []);
+
+  const handleContinue = () => {
+    const selectedType = assetTypes.find(
+      (type) => type.id === selectedAssetType
+    );
+    if (selectedType) {
+      updateAssetData("assetTypeName", selectedType.type_name);
+      navigation.navigate("AssetTitle");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -67,10 +76,7 @@ const ChooseAssetType = () => {
         </View>
       </View>
 
-      <Button
-        style={styles.button}
-        onPress={() => navigation.navigate("AssetCountry")}
-      >
+      <Button style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
       </Button>
     </View>
