@@ -3,10 +3,10 @@ import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import Svg, { Path } from 'react-native-svg'; // Importing Svg and Path from react-native-svg
 import axios from 'axios';
-
-const UserDetails = ({ route }) => {
+import { useUserContext } from '../../UserContext';
+const UserDetails = ({ route, navigation }) => {
   const { userId } = route.params; 
-  const [userDetails, setUserDetails] = useState(null);
+  const { userDetails, setUserDetails } = useUserContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,14 +18,16 @@ const UserDetails = ({ route }) => {
        
         if (response.data && response.data.length > 0) {
           const user = response.data[0];
-          const assets = response.data.map(item => ({
-            asset_name: item.asset_name,
-            asset_type_id: item.asset_type_id,
-            location_id: item.location_id,
-            asset_created_at: item.asset_created_at,
-          }));
+          // const assets = response.data.map(item => ({
+          //   asset_name: item.asset_name,
+          //   asset_type_id: item.asset_type_id,
+          //   location_id: item.location_id,
+          //   asset_created_at: item.asset_created_at,
+          // }));
 
-          setUserDetails({ ...user, assets });
+          console.log(user); 
+          // console.log(assets); 
+          setUserDetails(user);
         } else {
           console.error('User details not found');
         }
@@ -39,7 +41,7 @@ const UserDetails = ({ route }) => {
     if (userId) {
       fetchUserDetails();
     }
-  }, [userId]);
+  }, [userId, navigation]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: 'white',
   },
   userInfo: {
     flexDirection: 'row',
