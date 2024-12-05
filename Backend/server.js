@@ -280,8 +280,6 @@ app.put('/user/:id', async (req, res) => {
 });
 
 
-
-
 // Delete a user by ID
 app.delete('/user/:id', async (req, res) => {
   const userId = req.params.id;

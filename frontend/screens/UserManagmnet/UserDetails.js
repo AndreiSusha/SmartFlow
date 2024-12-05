@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator,TouchableOpacity } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import Svg, { Path } from 'react-native-svg'; // Importing Svg and Path from react-native-svg
 import axios from 'axios';
 import { useUserContext } from '../../UserContext';
-const UserDetails = ({ route, navigation }) => {
+import BottomSheet from '@components/bottomsheets/BottomSheet';
+import ConfirmationModal from '@components/ConfirmationModal';
+const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => {
   const { userId } = route.params; 
   const { userDetails, setUserDetails } = useUserContext();
   const [loading, setLoading] = useState(true);
+  const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -60,6 +63,7 @@ const UserDetails = ({ route, navigation }) => {
           <Text style={styles.email}>{userDetails.email}</Text>
         </View>
       </View>
+
 
       {/* Location Section */}
       <View style={styles.locationContent}>
@@ -116,6 +120,7 @@ const UserDetails = ({ route, navigation }) => {
           <Text style={styles.details}>November 12,2024, 8:45 AM (UTC)</Text>
         </View>
       </View>
+
     </View>
   );
 };
@@ -126,7 +131,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
   },
   userInfo: {
     flexDirection: 'row',

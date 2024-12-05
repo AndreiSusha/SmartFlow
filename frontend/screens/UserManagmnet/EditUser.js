@@ -63,7 +63,7 @@ const EditUser = ({ route, navigation }) => {
         // navigation.goBack(); // Go back to UserDetails after update
         navigation.navigate('UserDetails')
       } else {
-        console.log(`Unexpected response status: ${response.status}`); // Log unexpected statuses
+        Alert.alert(`Unexpected response status: ${response.status}`); // Log unexpected statuses
       }
     } catch (error) {
       console.error('Error updating user:', error);
@@ -97,13 +97,13 @@ const EditUser = ({ route, navigation }) => {
         label="Phone Number"
         placeholder="Phone number"
         value={phone}
-        onUpdateValue={setPhone}
+        // onUpdateValue={setPhone}
       />
       <Input
         label="User Summary"
         placeholder="User summary"
         value={summary}
-        onUpdateValue={setSummary}
+        // onUpdateValue={setSummary}
       />
 
       {/* <Text style={styles.label}>Assigned Location</Text>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
   },
   label: {
     fontSize: 16,

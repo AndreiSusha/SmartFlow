@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import axios from 'axios';
 import { UserCard } from '../../components/userManagmnet/UserCard';
 import { useNavigation } from '@react-navigation/native';
@@ -48,7 +48,7 @@ const UserManagement = () => {
       </View>
 
       {/* Display Users */}
-      {loading ? (
+      {/* {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : filteredUsers.length > 0 ? (
         filteredUsers.map((user) => (
@@ -61,6 +61,24 @@ const UserManagement = () => {
         ))
       ) : (
         <Text>No users found</Text>
+      )} */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <ScrollView contentContainerStyle={styles.userList}>
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <UserCard
+                key={user.id}
+                name={user.username}
+                branch={user.asset_name}
+                onPress={() => navigation.navigate('UserDetails', { userId: user.id })}
+              />
+            ))
+          ) : (
+            <Text>No users found</Text>
+          )}
+        </ScrollView>
       )}
     </View>
   );
