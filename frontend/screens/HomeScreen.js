@@ -11,9 +11,21 @@ import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
 
 const HomeScreen = ({ route }) => {
-  // const { role } = route.params || { role: 'user' };
   const isFocused = useIsFocused();
   const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  const chartData = [
+    { percentage: 55, color: 'tomato' },
+    { percentage: 75, color: 'skyblue' },
+    { percentage: 35, color: 'gold' },
+    { percentage: 90, color: '#222' },
+  ];
+
+  // API functionality
+  //   const [chartData, setChartData] = useState([]);
+  //   useEffect(() => {
+  //   fetchDataFromAPI().then(data => setChartData(data));
+  // }, []);
 
   useEffect(() => {
     if (isFocused) {
@@ -30,7 +42,22 @@ const HomeScreen = ({ route }) => {
 
       {/* Chart */}
       <View style={styles.chartContainer}>
-        <DonutChart persentage={55} animate={shouldAnimate} />
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-evenly',
+          }}
+        >
+          {chartData.map((item, index) => (
+            <DonutChart
+              key={index}
+              percentage={item.percentage}
+              color={item.color}
+              animate={shouldAnimate}
+            />
+          ))}
+        </View>
       </View>
 
       {/* Reports */}
