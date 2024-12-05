@@ -7,12 +7,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
+import MonthDropdown from '../components/MonthDropdown';
 import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
 
 const HomeScreen = ({ route }) => {
   const isFocused = useIsFocused();
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(null);
 
   const chartData = [
     { percentage: 55, color: 'tomato' },
@@ -40,8 +42,13 @@ const HomeScreen = ({ route }) => {
       {/* Title */}
       <Text style={styles.title}>Consumption Overview</Text>
 
-      {/* Chart */}
+      {/* Donut Chart */}
       <View style={styles.chartContainer}>
+        {/* Month Dropdown */}
+        <MonthDropdown
+          selectedMonth={selectedMonth}
+          setSelectedMonth={setSelectedMonth}
+        />
         <View
           style={{
             flexDirection: 'row',
@@ -94,7 +101,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   chartContainer: {
-    marginBottom: 20,
+    width: '90%',
+    height: 300,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 21.18,
+    padding: 16,
+    marginBottom: 36,
+    alignSelf: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    position: 'relative',
   },
   subtitleRow: {
     flexDirection: 'row',
