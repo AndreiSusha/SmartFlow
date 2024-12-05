@@ -6,7 +6,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedInput = Animated.createAnimatedComponent(TextInput);
 
 export default function DonutChart({
-  persentage = 0,
+  percentage = 0,
   radius = 40,
   strokeWidth = 10,
   duration = 500,
@@ -25,7 +25,7 @@ export default function DonutChart({
   const runAnimation = () => {
     animatedValue.setValue(0);
     Animated.timing(animatedValue, {
-      toValue: persentage,
+      toValue: percentage,
       duration,
       delay,
       useNativeDriver: false,
@@ -58,7 +58,7 @@ export default function DonutChart({
     return () => {
       animatedValue.removeAllListeners();
     };
-  }, [max, persentage]);
+  }, [max, percentage]);
 
   return (
     <View style={{ width: radius * 2, height: radius * 2 }}>
