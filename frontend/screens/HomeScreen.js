@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,11 +6,22 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import ReportCard from '../components/ReportCard';
-import Chart from '../components/Chart';
+import DonutChart from '../components/reports/charts/DonutChart';
 
 const HomeScreen = ({ route }) => {
-  const { role } = route.params || { role: 'user' };
+  // const { role } = route.params || { role: 'user' };
+  const isFocused = useIsFocused();
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  useEffect(() => {
+    if (isFocused) {
+      setShouldAnimate(true);
+    } else {
+      setShouldAnimate(false);
+    }
+  }, [isFocused]);
 
   return (
     <ScrollView style={styles.container}>
@@ -18,7 +29,9 @@ const HomeScreen = ({ route }) => {
       <Text style={styles.title}>Consumption Overview</Text>
 
       {/* Chart */}
-      {/* <Chart role={role} /> */}
+      <View style={styles.chartContainer}>
+        <DonutChart persentage={55} animate={shouldAnimate} />
+      </View>
 
       {/* Reports */}
       <View style={styles.subtitleRow}>
@@ -45,12 +58,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    marginTop: 20,
   },
   title: {
     fontSize: 22,
     fontFamily: 'Inter-SemiBold',
     color: '#000000',
     marginBottom: 12,
+  },
+  chartContainer: {
+    marginBottom: 20,
   },
   subtitleRow: {
     flexDirection: 'row',
