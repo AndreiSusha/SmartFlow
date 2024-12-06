@@ -108,87 +108,6 @@ app.get('/user/:id', async (req, res) => {
 
 
 // Update a user by ID
-// app.put('/user/:id', async (req, res) => {
-//   const userId = req.params.id;
-//   const { username, email, password_hash, role_id, customer_id, asset_id, asset_name } = req.body;
-
-//   console.log(req.body);
-//   // If no fields are provided, return a bad request error
-//   if (!username && !email && !password_hash && !role_id && !customer_id && !asset_id && !asset_name) {
-//     return res.status(400).send('No fields to update');
-//   }
-
-//   try {
-//     const userFields = [];
-//     const userValues = [];
-
-//     // Dynamically build the SQL query for the `users` table
-//     if (username) {
-//       userFields.push('username = ?');
-//       userValues.push(username);
-//     }
-//     if (email) {
-//       userFields.push('email = ?');
-//       userValues.push(email);
-//     }
-//     if (password_hash) {
-//       userFields.push('password_hash = ?');
-//       userValues.push(password_hash);
-//     }
-//     if (role_id) {
-//       userFields.push('role_id = ?');
-//       userValues.push(role_id);
-//     }
-//     if (customer_id) {
-//       userFields.push('customer_id = ?');
-//       userValues.push(customer_id);
-//     }
-
-//     userValues.push(userId); // Add userId to the values array for the WHERE clause
-
-//     // If there are fields to update in the `users` table
-//     if (userFields.length > 0) {
-//       const userQuery = `UPDATE users SET ${userFields.join(', ')} WHERE id = ?`;
-//       const [userResult] = await pool.query(userQuery, userValues);
-
-//       if (userResult.affectedRows === 0) {
-//         return res.status(404).send('User not found');
-//       }
-//     }
-
-//     // Handle updates related to the `assets` table
-//     if (asset_id || asset_name) {
-//       // Ensure the asset exists
-//       const assetCheckQuery = `SELECT id FROM assets WHERE id = ?`;
-//       const [assetCheckResult] = await pool.query(assetCheckQuery, [asset_id]);
-
-//       if (assetCheckResult.length === 0) {
-//         return res.status(404).send('Asset not found');
-//       }
-
-//       // Update asset name if provided
-//       if (asset_name) {
-//         const assetUpdateQuery = `UPDATE assets SET name = ? WHERE id = ?`;
-//         await pool.query(assetUpdateQuery, [asset_name, asset_id]);
-//       }
-
-//       // Update or insert into the user_assets table
-//       if (asset_id) {
-//         const userAssetQuery = `
-//           INSERT INTO user_assets (user_id, asset_id) 
-//           VALUES (?, ?)
-//           ON DUPLICATE KEY UPDATE asset_id = VALUES(asset_id);
-//         `;
-//         await pool.query(userAssetQuery, [userId, asset_id]);
-//       }
-//     }
-
-//     res.send('User and assets updated successfully');
-//   } catch (err) {
-//     console.error('Error updating user and assets:', err.stack);
-//     res.status(500).send('Error updating user and assets');
-//   }
-// });
 app.put('/user/:id', async (req, res) => {
   const userId = req.params.id;
   const { username, email, password_hash, role_id, customer_id, asset_id, asset_name } = req.body;
@@ -285,21 +204,23 @@ app.delete('/user/:id', async (req, res) => {
   const userId = req.params.id;
 
   try {
-    // Execute the DELETE query
+    // Delete related data first
+    await pool.query('DELETE FROM user_assets WHERE user_id = ?', [userId]);
+    
+    // Then delete the user
     const [result] = await pool.query('DELETE FROM users WHERE id = ?', [userId]);
 
-    // Check if any rows were affected (i.e., the user existed)
     if (result.affectedRows === 0) {
       return res.status(404).send('User not found');
     }
 
-    // Respond with success message
-    res.send('User deleted successfully');
+    res.send('User and related data deleted successfully');
   } catch (error) {
     console.error('Error deleting user:', error.stack);
     res.status(500).send('Error deleting user');
   }
 });
+
 
 
 // Add a new user

@@ -13,6 +13,7 @@
   import { useNavigation } from '@react-navigation/native';
   import ConfirmationModal from "@components/ConfirmationModal";
   import { useUserContext } from "../UserContext";
+  import axios from 'axios';
   
 
   const Stack = createStackNavigator();
@@ -23,29 +24,33 @@
     const [userIdToDelete, setUserIdToDelete] = useState(null);
     const { removeUser } = useUserContext();
     const navigation = useNavigation();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleDeleteUser = async () => {
-      setModalVisible(false); // Close modal
-      if (userIdToDelete) {
-        try {
-          // Make the DELETE API call to your backend with the user ID
-          const response = await axios.delete(`https://192.168.0.103:3000/user/${userIdToDelete}`);
-          console.log(response.data); // Handle success response
-          
-          // Remove the deleted user from the context
-          removeUser(userIdToDelete);
-  
-          // Optionally, show a success message or perform additional logic here
-          alert("User deleted successfully");
-  
-          // Navigate back after deletion
-          navigation.goBack();
-        } catch (error) {
-          console.error("Error deleting user:", error);
-          alert("Failed to delete user");
+      setIsLoading(true);
+      setModalVisible(false);
+      try {
+        await axios.delete(`http://192.168.0.103:3000/user/${userIdToDelete}`);
+        removeUser(userIdToDelete);
+        alert("User deleted successfully");
+        navigation.goBack();
+      } catch (error) {
+        if (error.response) {
+          console.error("Error response from server:", error.response.data);
+          alert(`Failed to delete user: ${error.response.data.message || "Server error"}`);
+        } else if (error.request) {
+          console.error("No response from server:", error.request);
+          alert("Failed to delete user: No response from server. Check your connection.");
+        } else {
+          console.error("Error setting up request:", error.message);
+          alert(`Failed to delete user: ${error.message}`);
         }
+      } finally {
+        setIsLoading(false);
       }
     };
+    
+
 
     return (
       <>
@@ -164,7 +169,7 @@
         <ConfirmationModal
           visible={isModalVisible}
           title="Confirm Removal"
-          message="Are you sure you want to remove this user? This action cannot be undone."
+          message="Are you sure you want to remove ${userIdToDelete}? This action cannot be undone."
           onConfirm={handleDeleteUser}
           onCancel={() => setModalVisible(false)}
         />
