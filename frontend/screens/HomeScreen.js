@@ -11,7 +11,7 @@ import MonthDropdown from '../components/MonthDropdown';
 import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
 
-const HomeScreen = ({ route }) => {
+const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(null);
@@ -37,6 +37,13 @@ const HomeScreen = ({ route }) => {
     }
   }, [isFocused]);
 
+  const reportCards = [
+    { title: 'Electricity', value: '200 kWh' },
+    { title: 'Water', value: '1500 L' },
+    { title: 'Gas', value: '80 m³' },
+    { title: 'Internet', value: '300 GB' },
+  ];
+
   return (
     <ScrollView style={styles.container}>
       {/* Title */}
@@ -49,13 +56,7 @@ const HomeScreen = ({ route }) => {
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
         />
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-evenly',
-          }}
-        >
+        <View style={styles.donutChartContainer}>
           {chartData.map((item, index) => (
             <DonutChart
               key={index}
@@ -70,17 +71,26 @@ const HomeScreen = ({ route }) => {
       {/* Reports */}
       <View style={styles.subtitleRow}>
         <Text style={styles.subtitle}>Monthly reports</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
           <Text style={styles.viewAll}>View All</Text>
         </TouchableOpacity>
       </View>
 
       {/* Report Cards */}
       <View style={styles.cardGrid}>
-        <ReportCard title="Electricity" value="200 kWh" />
-        <ReportCard title="Water" value="1500 L" />
-        <ReportCard title="Gas" value="80 m³" />
-        <ReportCard title="Internet" value="300 GB" />
+        {reportCards.map((report, index) => (
+          <ReportCard
+            key={index}
+            title={report.title}
+            value={report.value}
+            onPress={() =>
+              navigation.navigate('Reports', {
+                screen: 'Report',
+                params: { reportTitle: report.title },
+              })
+            }
+          />
+        ))}
       </View>
     </ScrollView>
   );
@@ -102,7 +112,6 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     width: '90%',
-    height: 300,
     backgroundColor: '#FFFFFF',
     borderRadius: 21.18,
     padding: 16,
@@ -114,6 +123,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     position: 'relative',
+  },
+  donutChartContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   subtitleRow: {
     flexDirection: 'row',
