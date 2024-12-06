@@ -1,4 +1,3 @@
-
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -7,7 +6,11 @@ import AuthNavigator from "./navigation/AuthNavigator";
 import customFonts from "./config/fonts";
 import { useAuthStore } from "./stores/authStore";
 import ToastNotification from "./components/ToastNotification";
+
+import { UserProvider } from "./UserContext";
+
 import AppNavigator from "./navigation/AppNavigator";
+
 
 
 const App = () => {
@@ -24,12 +27,15 @@ const App = () => {
   }
   return (
     <>
-      <NavigationContainer>
-        {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
-      </NavigationContainer>
-      <ToastNotification />
-    </>
 
+      <UserProvider>
+        <NavigationContainer>
+          {isAuthenticated ? <TabNavigator /> : <AuthNavigator />}
+        </NavigationContainer>
+        <ToastNotification />
+      </UserProvider>
+
+    </>
   );
 };
 

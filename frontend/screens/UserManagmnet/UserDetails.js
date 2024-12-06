@@ -1,26 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator,TouchableOpacity } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import Svg, { Path } from 'react-native-svg'; // Importing Svg and Path from react-native-svg
 import axios from 'axios';
-
-const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
-
-const UserDetails = ({ route }) => {
-  const { userId } = route.params; // Access the userId from route.params
-  const [userDetails, setUserDetails] = useState(null);
+import { useUserContext } from '../../UserContext';
+import BottomSheet from '@components/bottomsheets/BottomSheet';
+import ConfirmationModal from '@components/ConfirmationModal';
+const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => {
+  const { userId } = route.params; 
+  const { userDetails, setUserDetails } = useUserContext();
   const [loading, setLoading] = useState(true);
+  const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        console.log("Fetching details for user ID:", userId); // Log the userId to check if it's correct
-        const response = await axios.get(`${API_IP}/user/${userId}`);
-        console.log("API Response:", response.data); // Log the response data
+        console.log("Fetching details for user ID:", userId); 
+        const response = await axios.get(`http://192.168.0.103:3000/user/${userId}`);
+        // console.log("API Response:", response.data); 
+       
+        if (response.data && response.data.length > 0) {
+          const user = response.data[0];
+          // const assets = response.data.map(item => ({
+          //   asset_name: item.asset_name,
+          //   asset_type_id: item.asset_type_id,
+          //   location_id: item.location_id,
+          //   asset_created_at: item.asset_created_at,
+          // }));
 
-        // Check if the response is valid
-        if (response.data) {
-          setUserDetails(response.data);
+          console.log(user); 
+          // console.log(assets); 
+          setUserDetails(user);
         } else {
           console.error('User details not found');
         }
@@ -34,7 +44,9 @@ const UserDetails = ({ route }) => {
     if (userId) {
       fetchUserDetails();
     }
-  }, [userId]);
+
+  }, [userId, navigation]);
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -61,7 +73,9 @@ const UserDetails = ({ route }) => {
         </View>
         <View style={styles.detail}>
           <Text style={styles.title}>Assigned Location</Text>
-          <Text style={styles.details}>Asia-Pacific Branch</Text>
+
+          <Text style={styles.details}>{userDetails.asset_name}</Text>
+
         </View>
       </View>
 
@@ -127,14 +141,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    marginBottom: 20, // Added margin to separate from other sections
+
+    marginBottom: 20, 
+
   },
   Image: {
     width: 80,
     height: 80,
     backgroundColor: '#e0e0e0',
-    borderRadius: 40, // Makes the image circular
-    marginRight: 15, // Space between image and text
+
+    borderRadius: 40, 
+    marginRight: 15, 
+
   },
   Info: {
     flex: 1,
@@ -161,15 +179,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000000',
   },
-  // Sections with icon and details side by side
+
   locationContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: 'row', // Align icon and text side by side
-    alignItems: 'center', // Vertically center the content
+
+    flexDirection: 'row', 
+    alignItems: 'center', 
+
   },
   phoneNumber: {
     marginBottom: 20,
@@ -177,8 +197,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: 'row', // Align icon and text side by side
-    alignItems: 'center', // Vertically center the content
+
+    flexDirection: 'row', 
+    alignItems: 'center', 
+
   },
   SummaryContent: {
     marginBottom: 20,
@@ -186,8 +208,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: 'row', // Align icon and text side by side
-    alignItems: 'center', // Vertically center the content
+
+    flexDirection: 'row', 
+    alignItems: 'center', 
+
   },
   ActiveContent: {
     marginBottom: 20,
@@ -195,23 +219,29 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: 'row', // Align icon and text side by side
-    alignItems: 'center', // Vertically center the content
+
+    flexDirection: 'row', 
+    alignItems: 'center', 
+
   },
 
   icon: {
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    marginRight: 10, // Set the margin right to push the icon further away
+
+    marginRight: 10, 
+
   },
   
   
   
   // Details content on the right side, adjusted for all sections with icons
   detail: {
-    marginLeft: 15, // Space between the icon and the details
-    flex: 1, // Take up remaining space for text
+
+    marginLeft: 15, 
+    flex: 1, 
+
   },
 });
 
