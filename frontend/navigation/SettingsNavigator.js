@@ -2,7 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import SettingsScreen from "../screens/SettingsScreen";
 import UserManagement from "../screens/UserManagemet";
-import UserDetails from "../screens/UserDetails";
+import UserDetails from "../screens/UserManagmnet/UserDetails";
 import AssetManagement from "../screens/AssetManagement/AssetManagement";
 import { Platform } from "react-native";
 import ChooseAssetType from "../screens/AssetManagement/AddAsset/ChooseAssetType";
