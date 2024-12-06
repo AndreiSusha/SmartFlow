@@ -1,29 +1,23 @@
-// <<<<<<< HEAD
-// import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-// import React, { useEffect } from "react";
-// =======
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import React, { useEffect, useState } from "react";
-// >>>>>>> 563c6c3e0c9725ea89834196e4ef02a472fcae90
 import AssetCard from "../../components/assetManagement/AssetCard";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
+import { Ionicons } from "@expo/vector-icons";
 
 const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const AssetManagement = () => {
-  const [assets, setAssets] = useState([]); // State to hold assets data
+  const [assets, setAssets] = useState([]);
+
   const navigation = useNavigation();
   const route = useRoute();
   const { showSuccessToast } = route.params || {};
   const { showToast } = useToastStore();
+
+  useEffect(() => {
+    navigation.setOptions({});
+  }, [navigation]);
 
   useEffect(() => {
     if (showSuccessToast) {
@@ -31,7 +25,6 @@ const AssetManagement = () => {
     }
   }, [showSuccessToast]);
 
-  // Fetch assets data from the backend API
   useEffect(() => {
     const fetchAssets = async () => {
       try {
@@ -45,7 +38,7 @@ const AssetManagement = () => {
     };
 
     fetchAssets();
-  }, []); // Empty dependency array ensures this runs once after the initial render
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
@@ -56,10 +49,10 @@ const AssetManagement = () => {
             title={asset.asset.name}
             address={asset.location.address}
             users={asset.usersAssigned}
+            onPress={() => navigation.navigate("AssetDetails", { asset })}
           />
         ))}
       </ScrollView>
-
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate("AddAssetNavigator")}

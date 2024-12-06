@@ -2,9 +2,9 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const AssetCard = ({ title, address, users }) => {
+const AssetCard = ({ title, address, users, onPress }) => {
   return (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardContent}>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.detailRow}>

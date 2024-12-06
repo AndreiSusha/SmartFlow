@@ -1,46 +1,78 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Text,
+  Modal,
+  TouchableWithoutFeedback,
+  Dimensions,
+  Animated,
 } from 'react-native';
-import Modal from 'react-native-modal';
 
 const BottomSheet = ({ visible, onClose, options, onSelect }) => {
+  const [animation] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    if (visible) {
+      // Slide up animation
+      Animated.timing(animation, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // Slide down animation
+      Animated.timing(animation, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible]);
+
+  const screenHeight = Dimensions.get('window').height;
+
+  const translateY = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [screenHeight, 0],
+  });
+
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <Modal
-      isVisible={visible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-      style={styles.modal}
-      statusBarTranslucent
-      useNativeDriver
-    >
-      <View style={styles.sheetContainer}>
-        {options.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.optionButton}
-            onPress={() => {
-              onSelect(option);
-              onClose();
-            }}
-          >
-            <Text style={styles.optionText}>{option.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.modalOverlay}>
+          <TouchableWithoutFeedback>
+            <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }]}>
+              {options.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.optionButton}
+                  onPress={() => {
+                    onSelect(option);
+                    onClose();
+                  }}
+                >
+                  <Text style={styles.optionText}>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modal: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent background
     justifyContent: 'flex-end',
-    margin: 0,
-    elevation: 1000,
   },
   sheetContainer: {
     backgroundColor: '#fff',
@@ -50,8 +82,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     minHeight: 100,
-    zIndex: 10,
-    elevation: 10
   },
   optionButton: {
     paddingVertical: 15,
@@ -64,4 +94,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomSheet;
+export default BottomSheet;
