@@ -8,6 +8,7 @@ import { useAuthStore } from "./stores/authStore";
 import ToastNotification from "./components/ToastNotification";
 
 import { UserProvider } from "./UserContext";
+import TabNavigator from "./navigation/TabNavigator";
 
 import AppNavigator from "./navigation/AppNavigator";
 
