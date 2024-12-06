@@ -36,7 +36,7 @@ export default function DonutChart({
     if (animate) {
       runAnimation();
     }
-  }, [animate]);
+  }, [animate, percentage]);
 
   React.useEffect(() => {
     animatedValue.addListener((v) => {
@@ -58,7 +58,18 @@ export default function DonutChart({
     return () => {
       animatedValue.removeAllListeners();
     };
-  }, [max, percentage]);
+  }, [max, circleCircumference]);
+
+  React.useEffect(() => {
+    if (circleRef?.current) {
+      circleRef.current.setNativeProps({
+        r: radius,
+        strokeWidth,
+        strokeDasharray: circleCircumference,
+        strokeDashoffset: circleCircumference,
+      });
+    }
+  }, [radius, strokeWidth, circleCircumference]);
 
   return (
     <View style={{ width: radius * 2, height: radius * 2 }}>
