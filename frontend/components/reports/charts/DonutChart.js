@@ -1,21 +1,21 @@
-import * as React from 'react';
+import React from 'react';
 import { StyleSheet, View, Animated, TextInput } from 'react-native';
 import Svg, { G, Circle } from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const AnimatedInput = Animated.createAnimatedComponent(TextInput);
 
-export default function DonutChart({
+const DonutChart = ({
   percentage = 0,
   radius = 40,
   strokeWidth = 10,
   duration = 500,
   color = 'tomato',
   delay = 250,
-  textColor,
+  textColor = 'black',
   max = 100,
   animate = false,
-}) {
+}) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
   const circleRef = React.useRef();
   const inputRef = React.useRef();
@@ -39,29 +39,25 @@ export default function DonutChart({
   }, [animate, percentage]);
 
   React.useEffect(() => {
-    animatedValue.addListener((v) => {
-      if (circleRef?.current) {
+    const listenerId = animatedValue.addListener((v) => {
+      if (circleRef.current) {
         const maxPerc = (100 * v.value) / max;
         const strokeDashoffset =
           circleCircumference - (circleCircumference * maxPerc) / 100;
-        circleRef.current.setNativeProps({
-          strokeDashoffset,
-        });
+        circleRef.current.setNativeProps({ strokeDashoffset });
       }
-      if (inputRef?.current) {
-        inputRef.current.setNativeProps({
-          text: `${Math.round(v.value)}`,
-        });
+      if (inputRef.current) {
+        inputRef.current.setNativeProps({ text: `${Math.round(v.value)}` });
       }
     });
 
     return () => {
-      animatedValue.removeAllListeners();
+      animatedValue.removeListener(listenerId);
     };
   }, [max, circleCircumference]);
 
   React.useEffect(() => {
-    if (circleRef?.current) {
+    if (circleRef.current) {
       circleRef.current.setNativeProps({
         r: radius,
         strokeWidth,
@@ -109,17 +105,11 @@ export default function DonutChart({
         defaultValue="0"
         style={[
           StyleSheet.absoluteFillObject,
-          styles.text,
-          { fontSize: radius / 2, color: textColor ?? color },
+          { fontSize: radius / 2, color: textColor, textAlign: 'center' },
         ]}
       />
     </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  text: {
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-});
+export default DonutChart;
