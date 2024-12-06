@@ -44,7 +44,9 @@ const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => 
     if (userId) {
       fetchUserDetails();
     }
+
   }, [userId, navigation]);
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -64,7 +66,6 @@ const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => 
         </View>
       </View>
 
-
       {/* Location Section */}
       <View style={styles.locationContent}>
         <View style={styles.icon}>
@@ -72,7 +73,9 @@ const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => 
         </View>
         <View style={styles.detail}>
           <Text style={styles.title}>Assigned Location</Text>
+
           <Text style={styles.details}>{userDetails.asset_name}</Text>
+
         </View>
       </View>
 
@@ -120,7 +123,6 @@ const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => 
           <Text style={styles.details}>November 12,2024, 8:45 AM (UTC)</Text>
         </View>
       </View>
-
     </View>
   );
 };
@@ -139,14 +141,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
+
     marginBottom: 20, 
+
   },
   Image: {
     width: 80,
     height: 80,
     backgroundColor: '#e0e0e0',
+
     borderRadius: 40, 
     marginRight: 15, 
+
   },
   Info: {
     flex: 1,
@@ -173,15 +179,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000000',
   },
- 
+
   locationContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
+
     flexDirection: 'row', 
     alignItems: 'center', 
+
   },
   phoneNumber: {
     marginBottom: 20,
@@ -189,8 +197,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
+
     flexDirection: 'row', 
     alignItems: 'center', 
+
   },
   SummaryContent: {
     marginBottom: 20,
@@ -198,8 +208,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
+
     flexDirection: 'row', 
     alignItems: 'center', 
+
   },
   ActiveContent: {
     marginBottom: 20,
@@ -207,23 +219,29 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CFCACA',
     borderRadius: 16,
+
     flexDirection: 'row', 
     alignItems: 'center', 
+
   },
 
   icon: {
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'center', 
+
     marginRight: 10, 
+
   },
   
   
   
   // Details content on the right side, adjusted for all sections with icons
   detail: {
+
     marginLeft: 15, 
     flex: 1, 
+
   },
 });
 

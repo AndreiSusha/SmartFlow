@@ -24,6 +24,7 @@ function Input({
         onChangeText={onUpdateValue}
         value={value}
         placeholderTextColor={"#8391A1"}
+        autoCorrect={false}
         {...props}
       />
     </View>

@@ -1,33 +1,55 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigation } from "@react-navigation/native";
+import Button from "@components/Button";
+import { AssetDataContext } from "../../../util/addAsset-context";
 
-const assetTypes = [
-  {
-    id: 1,
-    name: "Vechile",
-    icon: "car-outline",
-  },
-  {
-    id: 2,
-    name: "Corporate Property",
-    icon: "business-outline",
-  },
-  {
-    id: 3,
-    name: "Rental Apartment",
-    icon: "home-outline",
-  },
-];
+const iconMapping = {
+  "Corporate Property": "business-outline",
+  Vehicle: "car-outline",
+  "Rental Apartment": "home-outline",
+};
+
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const ChooseAssetType = () => {
   const [selectedAssetType, setSelectedAssetType] = useState(null);
+  const [assetTypes, setAssetTypes] = useState([]);
+  const navigation = useNavigation();
+  const { updateAssetData } = useContext(AssetDataContext);
+
+  // Fetch asset types from the backend
+  useEffect(() => {
+    const fetchAssetTypes = async () => {
+      try {
+        const response = await fetch(`${API_IP}/api/asset-types`); // Replace with your API endpoint
+        const data = await response.json();
+        setAssetTypes(data);
+      } catch (error) {
+        console.error("Failed to fetch asset types", error);
+      }
+    };
+
+    fetchAssetTypes();
+  }, []);
+
+  const handleContinue = () => {
+    const selectedType = assetTypes.find(
+      (type) => type.id === selectedAssetType
+    );
+    if (selectedType) {
+      updateAssetData("assetTypeName", selectedType.type_name);
+      navigation.navigate("AssetTitle");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.optionsContainer}>
         <View style={styles.optionsBlock}>
           {assetTypes.map((assetType, index) => {
+            const icon = iconMapping[assetType.type_name] || "help-outline"; // Default icon if type_name not matched
             return (
               <TouchableOpacity
                 onPress={() => setSelectedAssetType(assetType.id)}
@@ -38,8 +60,8 @@ const ChooseAssetType = () => {
                 ]}
               >
                 <View style={styles.cardInitials}>
-                  <Ionicons name={assetType.icon} size={30} color="black" />
-                  <Text style={styles.name}>{assetType.name}</Text>
+                  <Ionicons name={icon} size={30} color="black" />
+                  <Text style={styles.name}>{assetType.type_name}</Text>
                 </View>
                 {selectedAssetType === assetType.id && (
                   <Ionicons
@@ -54,9 +76,9 @@ const ChooseAssetType = () => {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
+      <Button style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+      </Button>
     </View>
   );
 };

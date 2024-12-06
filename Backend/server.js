@@ -41,6 +41,360 @@ pool.getConnection()
       res.status(500).json({ error: 'Database error' });
     }
   });
+  
+ // API endpoint to see the assets
+ app.get('/api/assets', async (req, res) => {
+  const query = `
+    SELECT 
+      l.id AS location_id,
+      l.country,
+      l.city,
+      l.address,
+      a.name AS asset_name,
+      COUNT(DISTINCT ua.user_id) AS users_assigned
+    FROM locations l
+    LEFT JOIN assets a ON l.id = a.location_id
+    LEFT JOIN user_assets ua ON a.id = ua.asset_id
+    GROUP BY l.id, l.country, l.city, l.address, a.name;
+  `;
+
+  try {
+    const [results] = await pool.query(query); // Execute the query
+
+    const formattedResults = results.map(row => ({
+      location: {
+        id: row.location_id,
+        name: `${row.country}, ${row.city}`, // Format country and city
+        address: row.address,
+      },
+      asset: {
+        name: row.asset_name, // Asset name
+      },
+      usersAssigned: row.users_assigned,
+    }));
+
+    res.json(formattedResults); // Send the formatted response
+  } catch (err) {
+    console.error('Error fetching locations data:', err);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
+});
+
+
+
+// API endpoint for the asset type
+app.get('/api/asset-types', async (req, res) => {
+  const query = `
+    SELECT id, type_name
+    FROM asset_types
+  `;
+
+  try {
+    const [results] = await pool.query(query); // Query the asset_types table
+    res.json(results); // Send the results as JSON
+  } catch (err) {
+    console.error('Error fetching asset types:', err);
+    res.status(500).json({ error: 'Failed to fetch asset types' });
+  }
+});
+
+// API endpoint to add new asset
+app.post('/api/add-new-asset', async (req, res) => {
+  const {
+    assetName,
+    assetTypeName, 
+    location: {
+      country,
+      city,
+      address,
+      zipCode,
+      additionalInformation
+    }
+  } = req.body;
+
+  // Validate required fields
+  if (!assetName || !assetTypeName || !country || !city) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const connection = await pool.getConnection();
+
+  try {
+    // Start a transaction
+    await connection.beginTransaction();
+
+    // Retrieve the asset type ID based on the asset type name
+    const assetTypeQuery = `
+      SELECT id FROM asset_types WHERE type_name = ?
+    `;
+    const [assetTypeResult] = await connection.query(assetTypeQuery, [assetTypeName]);
+
+    if (assetTypeResult.length === 0) {
+      throw new Error(`Asset type '${assetTypeName}' not found`);
+    }
+
+    const assetTypeId = assetTypeResult[0].id;
+
+    // Insert the new location
+    const locationQuery = `
+      INSERT INTO locations (country, city, address, zip_code, additional_information, customer_id)
+      VALUES (?, ?, ?, ?, ?, 3) -- Replace '3' with the appropriate customer_id if dynamic
+    `;
+    const [locationResult] = await connection.query(locationQuery, [
+      country,
+      city,
+      address || null, // Allow null values for optional fields
+      zipCode || null,
+      additionalInformation || null
+    ]);
+
+    const newLocationId = locationResult.insertId; // Get the ID of the inserted location
+
+    // Insert the new asset
+    const assetQuery = `
+      INSERT INTO assets (name, asset_type_id, location_id, created_at)
+      VALUES (?, ?, ?, NOW())
+    `;
+    const [assetResult] = await connection.query(assetQuery, [
+      assetName,
+      assetTypeId,
+      newLocationId
+    ]);
+
+    // Commit the transaction
+    await connection.commit();
+
+    res.status(201).json({
+      message: 'Asset and location added successfully',
+      assetId: assetResult.insertId,
+      locationId: newLocationId
+    });
+  } catch (err) {
+    // Rollback the transaction in case of an error
+    await connection.rollback();
+    console.error('Error adding asset and location:', err);
+    res.status(500).json({ error: 'Failed to add asset and location' });
+  } finally {
+    connection.release(); // Release the connection
+  }
+});
+
+
+// API endpoint for assset details 
+app.get('/api/asset-details/:id', async (req, res) => {
+  const assetId = req.params.id;
+
+  try {
+    // Query to fetch asset details
+    const assetQuery = `
+      SELECT 
+        a.name AS asset_name,
+        a.id AS building_id,
+        l.address,
+        l.city,
+        l.country,
+        a.description,
+        CONCAT('+1 (555) 123-4567', ', ', '+1 (555) 125-4561') AS contact_info -- Hardcoded for now
+      FROM assets a
+      LEFT JOIN locations l ON a.location_id = l.id
+      WHERE a.id = ?
+    `;
+    const [assetResults] = await pool.query(assetQuery, [assetId]);
+
+    if (assetResults.length === 0) {
+      return res.status(404).json({ error: 'Asset not found' });
+    }
+
+    const assetDetails = assetResults[0];
+
+    // Query to fetch users assigned to the asset
+    const userQuery = `
+      SELECT 
+        u.id AS user_id,
+        u.username AS user_name,
+        u.email AS user_email
+      FROM user_assets ua
+      LEFT JOIN users u ON ua.user_id = u.id
+      LEFT JOIN assets a ON ua.asset_id = a.id
+      WHERE a.id = ?
+    `;
+    const [userResults] = await pool.query(userQuery, [assetId]);
+
+    // Combine asset details and user list
+    res.json({
+      ...assetDetails,
+      users: userResults
+    });
+  } catch (err) {
+    console.error('Error fetching asset details and users:', err);
+    res.status(500).json({ error: 'Failed to fetch asset details and users' });
+  }
+});
+
+
+// API endpoint to see user details based on ID
+app.get('/api/users/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const userQuery = `
+      SELECT 
+        u.username AS user_name,
+        u.email AS user_email,
+        u.phone_number AS phone_number,
+        u.user_summary AS user_summary,
+        u.last_active AS last_active,
+        GROUP_CONCAT(a.name) AS assigned_assets
+      FROM users u
+      LEFT JOIN user_assets ua ON u.id = ua.user_id
+      LEFT JOIN assets a ON ua.asset_id = a.id
+      WHERE u.id = ?
+      GROUP BY u.id;
+    `;
+
+    const [userDetails] = await pool.query(userQuery, [userId]);
+
+    if (userDetails.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Return the raw data directly
+    res.json(userDetails[0]);
+  } catch (err) {
+    console.error('Error fetching user details:', err);
+    res.status(500).json({ error: 'Failed to fetch user details' });
+  }
+});
+
+
+
+
+
+// API endpoint to edit asset details
+app.put('/api/asset/:id', async (req, res) => {
+  const assetId = req.params.id; // Use asset_id from the URL
+  const { name, address, description } = req.body;
+
+  let connection;
+
+  try {
+    // Initialize variables for dynamic query building
+    const locationFieldsToUpdate = [];
+    const locationValues = [];
+    const assetFieldsToUpdate = [];
+    const assetValues = [];
+
+    // Check for each field and add it to the update query if provided
+    if (address) {
+      locationFieldsToUpdate.push('address = ?');
+      locationValues.push(address);
+    }
+
+    if (name) {
+      assetFieldsToUpdate.push('name = ?');
+      assetValues.push(name);
+    }
+
+    if (description) {
+      assetFieldsToUpdate.push('description = ?');
+      assetValues.push(description);
+    }
+
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    // Update the `locations` table if address is provided
+    if (locationFieldsToUpdate.length > 0) {
+      const locationQuery = `
+        UPDATE locations
+        SET ${locationFieldsToUpdate.join(', ')}
+        WHERE id = (SELECT location_id FROM assets WHERE id = ?)
+      `;
+      locationValues.push(assetId); // Use `asset_id` to find the associated location
+      const [locationResult] = await connection.query(locationQuery, locationValues);
+
+      if (locationResult.affectedRows === 0) {
+        console.warn('No associated location found for the given asset. Skipping location update.');
+      }
+    }
+
+    // Update the `assets` table if name or description is provided
+    if (assetFieldsToUpdate.length > 0) {
+      const assetQuery = `
+        UPDATE assets
+        SET ${assetFieldsToUpdate.join(', ')}
+        WHERE id = ?
+      `;
+      assetValues.push(assetId); // Use `asset_id` to update the asset
+      const [assetResult] = await connection.query(assetQuery, assetValues);
+
+      if (assetResult.affectedRows === 0) {
+        throw new Error('Asset not found');
+      }
+    }
+
+    // Commit the transaction
+    await connection.commit();
+    res.json({ message: 'Asset details updated successfully' });
+
+  } catch (err) {
+    if (connection) await connection.rollback(); // Rollback transaction in case of error
+    console.error('Error updating asset details:', err);
+    res.status(500).json({ error: 'Failed to update asset details', details: err.message });
+  } finally {
+    if (connection) {
+      connection.release(); // Release the database connection
+    }
+  }
+});
+
+
+
+// API endpoint to delete an asset
+app.delete('/api/assets/:id', async (req, res) => {
+  const assetId = req.params.id;
+
+  const connection = await pool.getConnection();
+
+  try {
+    // Start a transaction
+    await connection.beginTransaction();
+
+    // Delete related data from asset_measurements
+    const deleteAssetMeasurementsQuery = `
+      DELETE FROM asset_measurements WHERE asset_id = ?
+    `;
+    await connection.query(deleteAssetMeasurementsQuery, [assetId]);
+
+    // Delete related data from user_assets
+    const deleteUserAssetsQuery = `
+      DELETE FROM user_assets WHERE asset_id = ?
+    `;
+    await connection.query(deleteUserAssetsQuery, [assetId]);
+
+    // Finally, delete the asset itself
+    const deleteAssetQuery = `
+      DELETE FROM assets WHERE id = ?
+    `;
+    const [result] = await connection.query(deleteAssetQuery, [assetId]);
+
+    if (result.affectedRows === 0) {
+      throw new Error('Asset not found');
+    }
+
+    // Commit the transaction
+    await connection.commit();
+
+    res.json({ message: 'Asset and all related records deleted successfully' });
+  } catch (err) {
+    // Rollback the transaction in case of an error
+    await connection.rollback();
+    console.error('Error deleting asset:', err);
+    res.status(500).json({ error: 'Failed to delete asset' });
+  } finally {
+    connection.release(); // Release the database connection
+  }
+});
 
 app.get('/users/:customer_id', async (req, res) => {
   const customerId = req.params.customer_id;
@@ -253,11 +607,6 @@ app.post('/user', async (req, res) => {
   }
 });
 
-
-
-
-  
-  
 
 
 
