@@ -1,55 +1,67 @@
-import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Text,
+} from "react-native";
+import React, { useEffect} from "react";
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { getAssets } from "../../api/AssetApi";
 
-const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const AssetManagement = () => {
-  const [assets, setAssets] = useState([]);
 
   const navigation = useNavigation();
   const route = useRoute();
-  const { showSuccessToast } = route.params || {};
+  const { showSuccessAddToast, showSuccessDeleteToast } = route.params || {};
   const { showToast } = useToastStore();
 
   useEffect(() => {
-    navigation.setOptions({});
-  }, [navigation]);
+    console.log(assets);
+  }, [assets]);
 
   useEffect(() => {
-    if (showSuccessToast) {
+    if (showSuccessAddToast) {
       showToast("Success!", "The asset was added successfully.", "success");
     }
-  }, [showSuccessToast]);
+    if (showSuccessDeleteToast) {
+      showToast("Success!", "The asset was deleted successfully.", "success");
+    }
+  }, [showSuccessAddToast, showSuccessDeleteToast]);
 
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        const response = await fetch(`${API_IP}/api/assets`);
+  const {
+    data: assets,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["AssetsList"],
+    queryFn: () => getAssets(),
+  });
 
-        const data = await response.json();
-        setAssets(data);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-      }
-    };
+  if (isLoading) {
+    return <Text>Loading...</Text>;
+  }
 
-    fetchAssets();
-  }, []);
+  if (isError) {
+    return <Text>Error: {error.message}</Text>;
+  }
 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {assets.map((asset, index) => (
+        {assets.map((asset) => (
           <AssetCard
-            key={index}
+            key={asset.asset.id}
             title={asset.asset.name}
             address={asset.location.address}
             users={asset.usersAssigned}
-            onPress={() => navigation.navigate("AssetDetails", { asset })}
+            onPress={() => navigation.navigate("AssetDetails", { id: asset.asset.id })}
           />
         ))}
       </ScrollView>
@@ -80,6 +92,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
+  scrollContainer: {
+    paddingBottom: 30
+  }
 });
 
 export default AssetManagement;

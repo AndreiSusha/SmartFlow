@@ -35,7 +35,6 @@ const AssetAdditionalInfo = () => {
       });
 
       if (response.ok) {
-        showToast("Success!", "The asset was added successfully.", "success");
         navigation.dispatch(
           CommonActions.reset({
             index: 1,
@@ -51,7 +50,7 @@ const AssetAdditionalInfo = () => {
                           { name: "SettingsScreen" },
                           {
                             name: "AssetManagement",
-                            params: { showSuccessToast: true },
+                            params: { showSuccessAddToast: true },
                           },
                         ],
                       },
