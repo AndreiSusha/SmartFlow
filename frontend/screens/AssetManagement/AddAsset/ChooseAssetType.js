@@ -1,39 +1,46 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigation } from "@react-navigation/native";
+import Button from "@components/Button";
+import { AssetDataContext } from "../../../util/addAsset-context";
 
+const iconMapping = {
+  "Corporate Property": "business-outline",
+  Vehicle: "car-outline",
+  "Rental Apartment": "home-outline",
+};
+
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const ChooseAssetType = () => {
-  const [assetTypes, setAssetTypes] = useState([]); // State to store asset types
   const [selectedAssetType, setSelectedAssetType] = useState(null);
+  const [assetTypes, setAssetTypes] = useState([]);
+  const navigation = useNavigation();
+  const { updateAssetData } = useContext(AssetDataContext);
 
   // Fetch asset types from the backend
   useEffect(() => {
     const fetchAssetTypes = async () => {
       try {
-        const response = await fetch("http://your_ip_address:3000/api/asset-types");
+        const response = await fetch(`${API_IP}/api/asset-types`); // Replace with your API endpoint
         const data = await response.json();
-        setAssetTypes(data); // Set the fetched data to state
+        setAssetTypes(data);
       } catch (error) {
-        console.error("Error fetching asset types:", error);
+        console.error("Failed to fetch asset types", error);
       }
     };
 
     fetchAssetTypes();
   }, []);
 
-  const getIconForType = (typeName) => {
-    switch (typeName) {
-      case "Vehicle":
-        return "car-outline";
-      case "Corporate Property":
-        return "business-outline";
-      case "Rental Apartment":
-        return "home-outline";
-      case "Building":
-        return "cube-outline";
-      default:
-        return "help-outline"; // Default icon
+  const handleContinue = () => {
+    const selectedType = assetTypes.find(
+      (type) => type.id === selectedAssetType
+    );
+    if (selectedType) {
+      updateAssetData("assetTypeName", selectedType.type_name);
+      navigation.navigate("AssetTitle");
     }
   };
 
@@ -42,6 +49,7 @@ const ChooseAssetType = () => {
       <View style={styles.optionsContainer}>
         <View style={styles.optionsBlock}>
           {assetTypes.map((assetType, index) => {
+            const icon = iconMapping[assetType.type_name] || "help-outline"; // Default icon if type_name not matched
             return (
               <TouchableOpacity
                 onPress={() => setSelectedAssetType(assetType.id)}
@@ -52,7 +60,7 @@ const ChooseAssetType = () => {
                 ]}
               >
                 <View style={styles.cardInitials}>
-                  <Ionicons name={getIconForType(assetType.type_name)} size={30} color="black" />
+                  <Ionicons name={icon} size={30} color="black" />
                   <Text style={styles.name}>{assetType.type_name}</Text>
                 </View>
                 {selectedAssetType === assetType.id && (
@@ -68,9 +76,9 @@ const ChooseAssetType = () => {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
+      <Button style={styles.button} onPress={handleContinue}>
         <Text style={styles.buttonText}>Continue</Text>
-      </TouchableOpacity>
+      </Button>
     </View>
   );
 };

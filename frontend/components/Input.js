@@ -24,6 +24,7 @@ function Input({
         onChangeText={onUpdateValue}
         value={value}
         placeholderTextColor={"#8391A1"}
+        autoCorrect={false}
         {...props}
       />
     </View>
@@ -44,12 +45,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Urbanist-Regular",
     backgroundColor: "#FFFFFF",
+    marginBottom: 15
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: "Urbanist-Regular",
     color: "#4A4A4A",
-    marginBottom: 4,
+    marginBottom: 6,
     marginStart: 4,
   },
 });

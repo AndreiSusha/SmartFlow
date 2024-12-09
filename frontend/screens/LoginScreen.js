@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     padding: 16,
     backgroundColor: "#F2F2F2",
-    paddingHorizontal: 32,
+    paddingHorizontal: 26,
   },
   title: {
     fontSize: 30,

@@ -1,7 +1,7 @@
-import { useLayoutEffect } from 'react';
-import ElectricityReport from '../../components/reports/electricityReport';
-import { useNavigation } from '@react-navigation/native';
-import { Platform } from 'react-native';
+import { useEffect, useLayoutEffect } from "react";
+import ElectricityReport from "../../components/reports/electricityReport";
+import { useNavigation } from "@react-navigation/native";
+import { Platform } from "react-native";
 
 const ReportDetails = () => {
   const navigation = useNavigation();
@@ -16,9 +16,9 @@ const ReportDetails = () => {
   const DATA_MONTHLY = Array.from({ length: 13 }, (_, i) => {
     const weekStartDate = new Date(today);
     weekStartDate.setDate(weekStartDate.getDate() - (12 - i) * 7);
-    const weekLabel = weekStartDate.toLocaleDateString('default', {
-      month: 'numeric',
-      day: 'numeric',
+    const weekLabel = weekStartDate.toLocaleDateString("default", {
+      month: "numeric",
+      day: "numeric",
     });
     return {
       weekIndex: i + 1,
@@ -34,16 +34,22 @@ const ReportDetails = () => {
     cost: (Math.random() * 300 + 100) * 0.2,
   }));
 
+  useEffect(() => {
+    console.log("DATA_WEEKLY:", DATA_WEEKLY);
+    console.log("DATA_MONTHLY:", DATA_MONTHLY);
+    console.log("DATA_YEARLY:", DATA_YEARLY);
+  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Electricity Report',
+      title: "Electricity Report",
       headerStyle: {
-        backgroundColor: 'transparent',
-        elevation: Platform.OS === 'android' ? 0 : undefined, // Removes shadow on Android
+        backgroundColor: "transparent",
+        elevation: Platform.OS === "android" ? 0 : undefined, // Removes shadow on Android
       },
-      headerTintColor: '#53B6C7',
+      headerTintColor: "#53B6C7",
       headerBackTitleVisible: false,
-      headerTitleAlign: 'center',
+      headerTitleAlign: "center",
     });
   }, [navigation]);
 

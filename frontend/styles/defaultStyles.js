@@ -5,6 +5,8 @@ export const defaultStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingBottom: 100,
+    paddingBottom: 40,
+    paddingTop: 20,
+    paddingHorizontal: 26,
   },
 });
