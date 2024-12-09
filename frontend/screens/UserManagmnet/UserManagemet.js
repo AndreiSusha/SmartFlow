@@ -15,8 +15,8 @@ const UserManagement = () => {
     const fetchUsers = async () => {
       try {
 
-        // const response = await axios.get(`${API_IP}/users/3`);
-        const response = await axios.get('http://192.168.0.103:3000/users/3');
+        const response = await axios.get(`${API_IP}/users/3`);
+        // const response = await axios.get('http://192.168.0.103:3000/users/3');
 
         // Filter users with role_id 2
         const filteredUsers = response.data.filter(user => user.role_id === 2);

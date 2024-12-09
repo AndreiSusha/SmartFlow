@@ -14,7 +14,7 @@ const EditUser = ({ route, navigation }) => {
   const [location, setLocation] = useState(null);
   const [summary, setSummary] = useState(null);
   const [phone, setPhone] = useState(null);
-
+  const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
   useEffect(() => {
     if(!userDetails) return; 
     setUserId(userDetails.id);
@@ -48,7 +48,7 @@ const EditUser = ({ route, navigation }) => {
 
   const handleSave = async () => { 
     try {
-      const response = await axios.put(`http://192.168.0.103:3000/user/${userId}`, {
+      const response = await axios.put(`${API_IP}/user/${userId}`, {
         username,
         email,
         asset_name: location,

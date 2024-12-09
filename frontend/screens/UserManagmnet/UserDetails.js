@@ -12,11 +12,12 @@ const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => 
   const [loading, setLoading] = useState(true);
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
 
+  const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         console.log("Fetching details for user ID:", userId); 
-        const response = await axios.get(`http://192.168.0.103:3000/user/${userId}`);
+        const response = await axios.get(`${API_IP}/user/${userId}`);
         // console.log("API Response:", response.data); 
        
         if (response.data && response.data.length > 0) {
