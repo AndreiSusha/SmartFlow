@@ -1,47 +1,65 @@
-import express from 'express'; // Use `import` for ES modules
-import dotenv from 'dotenv'; // Use `import` for dotenv
-import mysql from 'mysql2/promise'; // Use mysql2's `promise` import
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+import express from 'express';
+import { NodeSSH } from 'node-ssh'; 
 
+// Load environment variables
 dotenv.config();
 
+// Initialize Express app
 const app = express();
-
-// Middleware to parse JSON in request bodies
 app.use(express.json());
 
-// Create a MySQL connection pool
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE
-});
+// Variables
+let pool;
+const ssh = new NodeSSH();
 
-pool.getConnection()
-  .then((connection) => {
-    console.log('Connected to the database!');
-    connection.release();
-  })
-  .catch((err) => {
-    console.error('Database connection error: ', err);
-  });
+console.log('Using database:', process.env.DB_NAME);
+
+async function initializeSSH() {
+  try {
+    console.log('Establishing SSH connection...');
+    await ssh.connect({
+      host: process.env.SSH_HOST,
+      port: parseInt(process.env.SSH_PORT, 10),
+      username: process.env.SSH_USER,
+      password: process.env.SSH_PASSWORD,
+    });
+    console.log('SSH connection successful!');
+
+    console.log('Forwarding port 3307...');
+    await ssh.forwardIn('127.0.0.1', 3307); // Local port forwarded to remote MySQL port
+    console.log('Port forwarding successful!');
+  } catch (error) {
+    console.error('SSH connection error:', error);
+    process.exit(1); // Stop the app if SSH fails
+  }
+}
+
+async function initializeMySQL() {
+  try {
+    console.log('Creating MySQL pool...');
+    pool = mysql.createPool({
+      host: process.env.DB_HOST,  // MySQL is forwarded to localhost via SSH
+      port: process.env.DB_PORT,  // Local forwarded port
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      waitForConnections: true,
+    });
+    console.log('MySQL pool created!');
+  } catch (error) {
+    console.error('Failed to initialize MySQL:', error);
+    process.exit(1); // Exit the process if initialization fails
+  }
+}
+
+async function initialize() {
+  await initializeSSH(); // Initialize SSH first
+  await initializeMySQL(); // Then initialize MySQL
+}
 
 
-  app.get('/co2', async (req, res) => {
-    try {
-      // Correct the table name and column name
-      const [rows] = await pool.query('SELECT value FROM co2_measurements');
-      
-      // Log the result to the console
-      console.log('CO2 Data:', rows);  // Logs the query results
-  
-      res.json(rows);  // Send the data as the response
-    } catch (error) {
-      console.error('Error in fetching CO2 data:', error);
-      res.status(500).json({ error: 'Database error' });
-    }
-  });
-  
  // API endpoint to see the assets
  app.get('/api/assets', async (req, res) => {
   const query = `
@@ -267,9 +285,6 @@ app.get('/api/users/:id', async (req, res) => {
 });
 
 
-
-
-
 // API endpoint to edit asset details
 app.put('/api/asset/:id', async (req, res) => {
   const assetId = req.params.id; // Use asset_id from the URL
@@ -349,7 +364,6 @@ app.put('/api/asset/:id', async (req, res) => {
 });
 
 
-
 // API endpoint to delete an asset
 app.delete('/api/assets/:id', async (req, res) => {
   const assetId = req.params.id;
@@ -395,6 +409,285 @@ app.delete('/api/assets/:id', async (req, res) => {
     connection.release(); // Release the database connection
   }
 });
+
+
+//// API endpoint for measurements
+app.get('/api/measurements', async (req, res) => {
+  const queries = {
+    temperature: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM temperature_measurements;
+    `,
+    co2: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM co2_measurements;
+    `,
+    vdd: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM vdd_measurements;
+    `,
+    humidity: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM humidity_measurements;
+    `,
+  };
+
+  try {
+    const temperaturePromise = pool.query(queries.temperature);
+    const co2Promise = pool.query(queries.co2);
+    const vddPromise = pool.query(queries.vdd);
+    const humidityPromise = pool.query(queries.humidity);
+
+    const [temperatureResults] = await temperaturePromise;
+    const [co2Results] = await co2Promise;
+    const [vddResults] = await vddPromise;
+    const [humidityResults] = await humidityPromise;
+
+    res.json({
+      temperature: temperatureResults,
+      co2: co2Results,
+      vdd: vddResults,
+      humidity: humidityResults,
+    });
+  } catch (err) {
+    console.error('Error fetching measurements:', err);
+    res.status(500).json({ error: 'Failed to fetch measurements' });
+  }
+});
+
+
+// API Endpoint to display data from measurements type tables
+app.get('/api/measurement-report', async (req, res) => {
+  try {
+    // Queries to return all raw values for temperature
+    const temperatureDailyQuery = `
+      SELECT 
+        DATE(timestamp) AS date,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM temperature_measurements
+      GROUP BY DATE(timestamp)
+      ORDER BY DATE(timestamp);
+    `;
+
+    const temperatureWeeklyQuery = `
+      SELECT 
+        WEEK(timestamp) AS weekNumber,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM temperature_measurements
+      GROUP BY WEEK(timestamp)
+      ORDER BY WEEK(timestamp);
+    `;
+
+    const temperatureMonthlyQuery = `
+      SELECT 
+        MONTH(timestamp) AS monthNumber,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM temperature_measurements
+      GROUP BY MONTH(timestamp)
+      ORDER BY MONTH(timestamp);
+    `;
+
+    const temperatureYearlyQuery = `
+      SELECT 
+        YEAR(timestamp) AS yearNumber,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM temperature_measurements
+      GROUP BY YEAR(timestamp)
+      ORDER BY YEAR(timestamp);
+    `;
+
+    // Queries to return highest and lowest values for humidity
+    const humidityDailyQuery = `
+      SELECT 
+        DATE(timestamp) AS date,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM humidity_measurements
+      GROUP BY DATE(timestamp)
+      ORDER BY DATE(timestamp);
+    `;
+
+    const humidityWeeklyQuery = `
+      SELECT 
+        WEEK(timestamp) AS weekNumber,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM humidity_measurements
+      GROUP BY WEEK(timestamp)
+      ORDER BY WEEK(timestamp);
+    `;
+
+    const humidityMonthlyQuery = `
+      SELECT 
+        MONTH(timestamp) AS monthNumber,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM humidity_measurements
+      GROUP BY MONTH(timestamp)
+      ORDER BY MONTH(timestamp);
+    `;
+
+    const humidityYearlyQuery = `
+      SELECT 
+        YEAR(timestamp) AS yearNumber,
+        MAX(value) AS highestValue,
+        MIN(value) AS lowestValue
+      FROM humidity_measurements
+      GROUP BY YEAR(timestamp)
+      ORDER BY YEAR(timestamp);
+    `;
+
+    // Queries to calculate SUM for VDD and CO2 (unchanged)
+    const vddDailyQuery = `
+      SELECT 
+        DATE(timestamp) AS date,
+        SUM(value) AS value
+      FROM vdd_measurements
+      GROUP BY DATE(timestamp);
+    `;
+    const vddWeeklyQuery = `
+      SELECT 
+        WEEK(timestamp) AS weekNumber,
+        SUM(value) AS value
+      FROM vdd_measurements
+      GROUP BY WEEK(timestamp);
+    `;
+    const vddMonthlyQuery = `
+      SELECT 
+        MONTH(timestamp) AS monthNumber,
+        SUM(value) AS value
+      FROM vdd_measurements
+      GROUP BY MONTH(timestamp);
+    `;
+    const vddYearlyQuery = `
+      SELECT 
+        YEAR(timestamp) AS yearNumber,
+        SUM(value) AS value
+      FROM vdd_measurements
+      GROUP BY YEAR(timestamp);
+    `;
+
+    const co2DailyQuery = `
+      SELECT 
+        DATE(timestamp) AS date,
+        SUM(value) AS value
+      FROM co2_measurements
+      GROUP BY DATE(timestamp);
+    `;
+    const co2WeeklyQuery = `
+      SELECT 
+        WEEK(timestamp) AS weekNumber,
+        SUM(value) AS value
+      FROM co2_measurements
+      GROUP BY WEEK(timestamp);
+    `;
+    const co2MonthlyQuery = `
+      SELECT 
+        MONTH(timestamp) AS monthNumber,
+        SUM(value) AS value
+      FROM co2_measurements
+      GROUP BY MONTH(timestamp);
+    `;
+    const co2YearlyQuery = `
+      SELECT 
+        YEAR(timestamp) AS yearNumber,
+        SUM(value) AS value
+      FROM co2_measurements
+      GROUP BY YEAR(timestamp);
+    `;
+
+    // Execute queries in parallel
+    const [
+      temperatureDaily,
+      temperatureWeekly,
+      temperatureMonthly,
+      temperatureYearly,
+      vddDaily,
+      vddWeekly,
+      vddMonthly,
+      vddYearly,
+      co2Daily,
+      co2Weekly,
+      co2Monthly,
+      co2Yearly,
+      humidityDaily,
+      humidityWeekly,
+      humidityMonthly,
+      humidityYearly,
+    ] = await Promise.all([
+      pool.query(temperatureDailyQuery),
+      pool.query(temperatureWeeklyQuery),
+      pool.query(temperatureMonthlyQuery),
+      pool.query(temperatureYearlyQuery),
+      pool.query(vddDailyQuery),
+      pool.query(vddWeeklyQuery),
+      pool.query(vddMonthlyQuery),
+      pool.query(vddYearlyQuery),
+      pool.query(co2DailyQuery),
+      pool.query(co2WeeklyQuery),
+      pool.query(co2MonthlyQuery),
+      pool.query(co2YearlyQuery),
+      pool.query(humidityDailyQuery),
+      pool.query(humidityWeeklyQuery),
+      pool.query(humidityMonthlyQuery),
+      pool.query(humidityYearlyQuery),
+    ]);
+
+    // Combine data into a single response
+    res.json({
+      temperature: {
+        daily: temperatureDaily[0],
+        weekly: temperatureWeekly[0],
+        monthly: temperatureMonthly[0],
+        yearly: temperatureYearly[0],
+      },
+      vdd: {
+        daily: vddDaily[0],
+        weekly: vddWeekly[0],
+        monthly: vddMonthly[0],
+        yearly: vddYearly[0],
+      },
+      co2: {
+        daily: co2Daily[0],
+        weekly: co2Weekly[0],
+        monthly: co2Monthly[0],
+        yearly: co2Yearly[0],
+      },
+      humidity: {
+        daily: humidityDaily[0],
+        weekly: humidityWeekly[0],
+        monthly: humidityMonthly[0],
+        yearly: humidityYearly[0],
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching measurement report:', err);
+    res.status(500).json({ error: 'Failed to fetch measurement report' });
+  }
+});
+
+
+
 
 app.get('/users/:customer_id', async (req, res) => {
   const customerId = req.params.customer_id;
@@ -609,9 +902,11 @@ app.post('/user', async (req, res) => {
 
 
 
-
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Call initialize before starting the server
+initialize().then(() => {
+  // Start the Express server
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });

@@ -35,7 +35,7 @@ const AssetManagement = () => {
   useEffect(() => {
     const fetchAssets = async () => {
       try {
-        const response = await fetch(`${API_IP}/api/assets`);
+        const response = await fetch(`${API_IP}api/assets`);
 
         const data = await response.json();
         setAssets(data);
