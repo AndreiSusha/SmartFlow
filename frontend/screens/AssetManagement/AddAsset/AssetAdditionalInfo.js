@@ -33,7 +33,7 @@ const AssetAdditionalInfo = () => {
     console.log("Asset Data to Send:", dataToSend); // For debugging
 
     try {
-      const response = await fetch(`${API_IP}/api/add-new-asset`, {
+      const response = await fetch(`${API_IP}api/add-new-asset`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

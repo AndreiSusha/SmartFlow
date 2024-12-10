@@ -34,7 +34,7 @@ const SettingsNavigator = () => {
     setIsLoading(true);
     setModalVisible(false);
     try {
-      await axios.delete(`${API_IP}/user/${userIdToDelete}`);
+      await axios.delete(`${API_IP}user/${userIdToDelete}`);
       removeUser(userIdToDelete);
       alert("User deleted successfully");
       navigation.goBack();

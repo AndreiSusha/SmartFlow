@@ -24,12 +24,14 @@ const AssetManagement = () => {
   useEffect(() => {
     console.log(assets);
   }, [assets]);
+  
 
   useEffect(() => {
     if (showSuccessAddToast) {
       showToast("Success!", "The asset was added successfully.", "success");
     }
   }, [showSuccessAddToast, showSuccessDeleteToast]);
+
 
   const {
     data: assets,

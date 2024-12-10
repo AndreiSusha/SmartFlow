@@ -23,7 +23,7 @@ const ChooseAssetType = () => {
   useEffect(() => {
     const fetchAssetTypes = async () => {
       try {
-        const response = await fetch(`${API_IP}/api/asset-types`); // Replace with your API endpoint
+        const response = await fetch(`${API_IP}api/asset-types`); // Replace with your API endpoint
         const data = await response.json();
         setAssetTypes(data);
       } catch (error) {

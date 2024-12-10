@@ -6,6 +6,8 @@ import { useUserContext } from '../../UserContext';
 import Input from '@components/Input';
 import Button from '@components/Button';
 
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 const EditUser = ({ route, navigation }) => {
   const { userDetails, setUserDetails } = useUserContext(); 
   const [userId, setUserId] = useState(null);
@@ -48,7 +50,7 @@ const EditUser = ({ route, navigation }) => {
 
   const handleSave = async () => { 
     try {
-      const response = await axios.put(`http://192.168.0.103:3000/user/${userId}`, {
+      const response = await axios.put(`${API_IP}user/${userId}`, {
         username,
         email,
         asset_name: location,
