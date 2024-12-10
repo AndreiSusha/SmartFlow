@@ -23,3 +23,16 @@ export const deleteAsset = async (id) => {
   const { data } = await api.delete(`/api/assets/${id}`);
   return data;
 };
+
+export const editAsset = async (id, name, description, address) => {
+  if (!id) {
+    throw new Error("Asset ID is required for editing.");
+  }
+
+  const { data } = await api.put(`/api/asset/${id}`, {
+    name,
+    description,
+    address,
+  });
+  return data;
+};

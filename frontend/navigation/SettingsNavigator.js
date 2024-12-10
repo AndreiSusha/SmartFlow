@@ -15,11 +15,12 @@ import { useUserContext } from "../UserContext";
 import axios from "axios";
 import EnterAssetDetails from "../screens/AssetManagement/AddAsset/EnterAssetDetails";
 import AssetDetails from "../screens/AssetManagement/AssetDetails";
+import EditAsset from "../screens/AssetManagement/EditAsset";
+import AddNewUser from "../screens/AssetManagement/AddNewUser";
 
 const Stack = createStackNavigator();
 
 const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
-
 
 const SettingsNavigator = () => {
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
@@ -169,6 +170,28 @@ const SettingsNavigator = () => {
               backgroundColor: "transparent",
               elevation: Platform.OS === "android" ? 0 : undefined,
             },
+          }}
+        />
+        <Stack.Screen
+          name="EditAsset"
+          component={EditAsset}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Edit Asset",
+          }}
+        />
+        <Stack.Screen
+          name="AddNewUser"
+          component={AddNewUser}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Add new user",
           }}
         />
       </Stack.Navigator>

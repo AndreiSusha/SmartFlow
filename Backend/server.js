@@ -46,16 +46,16 @@ pool.getConnection()
  app.get('/api/assets', async (req, res) => {
   const query = `
     SELECT 
-      l.id AS location_id,
       l.country,
       l.city,
       l.address,
+      a.id AS asset_id,
       a.name AS asset_name,
       COUNT(DISTINCT ua.user_id) AS users_assigned
     FROM locations l
-    LEFT JOIN assets a ON l.id = a.location_id
+    INNER JOIN assets a ON l.id = a.location_id
     LEFT JOIN user_assets ua ON a.id = ua.asset_id
-    GROUP BY l.id, l.country, l.city, l.address, a.name;
+    GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
   `;
 
   try {
@@ -63,15 +63,16 @@ pool.getConnection()
 
     const formattedResults = results.map(row => ({
       location: {
-        id: row.location_id,
-        name: `${row.country}, ${row.city}`, // Format country and city
+        name: `${row.country}, ${row.city}`,
         address: row.address,
       },
       asset: {
-        name: row.asset_name, // Asset name
+        id: row.asset_id,
+        name: row.asset_name,
       },
       usersAssigned: row.users_assigned,
     }));
+    
 
     res.json(formattedResults); // Send the formatted response
   } catch (err) {
@@ -103,12 +104,12 @@ app.post('/api/add-new-asset', async (req, res) => {
   const {
     assetName,
     assetTypeName, 
+    additionalInformation,
     location: {
       country,
       city,
       address,
       zipCode,
-      additionalInformation
     }
   } = req.body;
 
@@ -137,28 +138,28 @@ app.post('/api/add-new-asset', async (req, res) => {
 
     // Insert the new location
     const locationQuery = `
-      INSERT INTO locations (country, city, address, zip_code, additional_information, customer_id)
-      VALUES (?, ?, ?, ?, ?, 3) -- Replace '3' with the appropriate customer_id if dynamic
+      INSERT INTO locations (country, city, address, zip_code, customer_id)
+      VALUES (?, ?, ?, ?, 3) -- Replace '3' with the appropriate customer_id if dynamic
     `;
     const [locationResult] = await connection.query(locationQuery, [
       country,
       city,
       address || null, // Allow null values for optional fields
       zipCode || null,
-      additionalInformation || null
     ]);
 
     const newLocationId = locationResult.insertId; // Get the ID of the inserted location
 
     // Insert the new asset
     const assetQuery = `
-      INSERT INTO assets (name, asset_type_id, location_id, created_at)
-      VALUES (?, ?, ?, NOW())
+      INSERT INTO assets (name, asset_type_id, location_id, description, created_at)
+      VALUES (?, ?, ?, ?, NOW())
     `;
     const [assetResult] = await connection.query(assetQuery, [
       assetName,
       assetTypeId,
-      newLocationId
+      newLocationId,
+      additionalInformation || null
     ]);
 
     // Commit the transaction
@@ -189,14 +190,16 @@ app.get('/api/asset-details/:id', async (req, res) => {
     const assetQuery = `
       SELECT 
         a.name AS asset_name,
-        a.id AS building_id,
+        a.id AS asset_id,
         l.address,
         l.city,
         l.country,
         a.description,
+        at.type_name AS asset_type,
         CONCAT('+1 (555) 123-4567', ', ', '+1 (555) 125-4561') AS contact_info -- Hardcoded for now
       FROM assets a
       LEFT JOIN locations l ON a.location_id = l.id
+      LEFT JOIN asset_types at ON a.asset_type_id = at.id
       WHERE a.id = ?
     `;
     const [assetResults] = await pool.query(assetQuery, [assetId]);
@@ -350,6 +353,7 @@ app.put('/api/asset/:id', async (req, res) => {
 
 
 
+
 // API endpoint to delete an asset
 app.delete('/api/assets/:id', async (req, res) => {
   const assetId = req.params.id;
@@ -395,6 +399,7 @@ app.delete('/api/assets/:id', async (req, res) => {
     connection.release(); // Release the database connection
   }
 });
+
 
 app.get('/users/:customer_id', async (req, res) => {
   const customerId = req.params.customer_id;

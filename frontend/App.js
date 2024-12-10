@@ -11,6 +11,7 @@ import AppNavigator from "./navigation/AppNavigator";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./api/QueryClient";
 
+
 const App = () => {
   const [fontsLoaded] = useFonts(customFonts);
 
@@ -18,7 +19,7 @@ const App = () => {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#53B6C7" />
       </View>
     );
@@ -33,6 +34,7 @@ const App = () => {
           <ToastNotification />
         </UserProvider>
       </QueryClientProvider>
+
     </>
   );
 };

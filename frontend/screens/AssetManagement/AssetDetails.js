@@ -38,8 +38,8 @@ const AssetDetails = () => {
     mutationFn: () => deleteAsset(id),
     onSuccess: () => {
       queryClient.invalidateQueries(["AssetsList"]);
-      showToast("Success", "Asset was deleted successfully.", "success");
-      navigation.navigate("AssetManagement", { showSuccessDeleteToast: true });
+      navigation.goBack();
+      showToast("Success!", "The asset was deleted successfully.", "success");
     },
     onError: (error) => {
       showToast("Error", error.message || "Failed to delete asset.", "error");
@@ -98,10 +98,25 @@ const AssetDetails = () => {
   const menuOptions = [
     {
       label: "Delete",
+      icon: "trash-outline",
       onPress: () => {
         handleDeletePress();
       },
     },
+    {
+      label: "Edit",
+      icon: "create-outline",
+      onPress: () => {
+        handleEditPress();
+      },
+    },
+    {
+      label: "Add New user",
+      icon: "person-add-outline",
+      onPress: () => {
+        navigation.navigate("AddUser", { assetId: asset.asset_id });
+      },
+    }
   ];
 
   const openBottomSheet = () => setIsBottomSheetVisible(true);
@@ -112,46 +127,14 @@ const AssetDetails = () => {
     closeBottomSheet();
   };
 
+  const handleEditPress = () => {
+    navigation.navigate("EditAsset", { asset });
+  };
+
   const confirmDelete = () => {
     mutation.mutate();
     setIsDeleteModalVisible(false);
   };
-
-  // const confirmDelete = async () => {
-  // setIsDeleting(true);
-  // try {
-  //   console.log(asset.asset)
-  //   const response = await fetch(
-  //     `${API_IP}/api/assets/${asset.asset.id}`,
-  //     {
-  //       method: "DELETE",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     }
-  //   );
-  //   if (response.ok) {
-  //     setIsDeleting(false);
-  //     setIsDeleteModalVisible(false);
-  //     showToast("Success", "Asset was deleted successfully.", "success");
-  //     navigation.navigate("AssetManagement", { refresh: true });
-  //   } else {
-  //     const errorData = await response.json();
-  //     setIsDeleting(false);
-  //     setIsDeleteModalVisible(false);
-  //     showToast(
-  //       "Error",
-  //       errorData.message || "Failed to delete asset.",
-  //       "error"
-  //     );
-  //   }
-  // } catch (error) {
-  //   setIsDeleting(false);
-  //   setIsDeleteModalVisible(false);
-  //   showToast("Error", "An error occurred. Please try again.", "error");
-  //   console.error("Error deleting asset:", error);
-  // }
-  // };
 
   return (
     <View style={styles.container}>
@@ -246,51 +229,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
   },
-  // Modal styles
-  // modalOverlay: {
-  //   flex: 1,
-  //   backgroundColor: "rgba(0,0,0,0.5)",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
-  // modalContainer: {
-  //   width: "80%",
-  //   backgroundColor: "#fff",
-  //   borderRadius: 8,
-  //   padding: 20,
-  //   elevation: 5,
-  // },
-  // modalTitle: {
-  //   fontSize: 20,
-  //   fontWeight: "bold",
-  //   marginBottom: 15,
-  // },
-  // modalMessage: {
-  //   fontSize: 16,
-  //   color: "#333",
-  //   marginBottom: 25,
-  // },
-  // modalButtons: {
-  //   flexDirection: "row",
-  //   justifyContent: "flex-end",
-  // },
-  // cancelButton: {
-  //   marginRight: 15,
-  // },
-  // cancelButtonText: {
-  //   fontSize: 16,
-  //   color: Colors.primary,
-  // },
-  // deleteButton: {
-  //   backgroundColor: Colors.primary,
-  //   paddingVertical: 10,
-  //   paddingHorizontal: 20,
-  //   borderRadius: 4,
-  // },
-  // deleteButtonText: {
-  //   fontSize: 16,
-  //   color: "#fff",
-  // },
 });
 
 export default AssetDetails;

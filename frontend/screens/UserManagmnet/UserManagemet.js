@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import axios from 'axios';
 import { UserCard } from '../../components/userManagmnet/UserCard';
 import { useNavigation } from '@react-navigation/native';
@@ -14,12 +21,13 @@ const UserManagement = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-
         // const response = await axios.get(`${API_IP}/users/3`);
         const response = await axios.get(`${API_IP}/users/3`);
 
         // Filter users with role_id 2
-        const filteredUsers = response.data.filter(user => user.role_id === 2);
+        const filteredUsers = response.data.filter(
+          (user) => user.role_id === 2
+        );
 
         setUsers(filteredUsers); // Update state with filtered users
       } catch (error) {
@@ -74,7 +82,9 @@ const UserManagement = () => {
                 key={user.id}
                 name={user.username}
                 branch={user.asset_name}
-                onPress={() => navigation.navigate('UserDetails', { userId: user.id })}
+                onPress={() =>
+                  navigation.navigate('UserDetails', { userId: user.id })
+                }
               />
             ))
           ) : (
@@ -96,7 +106,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 10,
     padding: 10,
-    backgroundColor: 'transparent', 
+    backgroundColor: 'transparent',
   },
   searchInput: {
     width: '100%',

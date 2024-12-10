@@ -7,12 +7,12 @@ export const AssetDataProvider = ({ children }) => {
   const [assetData, setAssetData] = useState({
     assetName: "",
     assetTypeName: "",
+    additionalInformation: "",
     location: {
       country: "",
       city: "",
       address: "",
       zipCode: "",
-      additionalInformation: "",
     },
   });
 

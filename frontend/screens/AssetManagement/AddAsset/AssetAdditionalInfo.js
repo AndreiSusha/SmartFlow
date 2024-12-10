@@ -17,13 +17,20 @@ const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const AssetAdditionalInfo = () => {
   const [assetAdditionalInfo, setAssetAdditionalInfo] = useState("");
-  const { assetData, updateLocationData } = useContext(AssetDataContext);
+  const { assetData, updateAssetData } = useContext(AssetDataContext);
 
   const navigation = useNavigation();
   const { showToast } = useToastStore();
 
   const handleSaveAsset = async () => {
-    updateLocationData("additionalInformation", assetAdditionalInfo);
+    updateAssetData("additionalInformation", assetAdditionalInfo);
+
+    const dataToSend = {
+      ...assetData,
+      additionalInformation: assetAdditionalInfo,
+    }
+
+    console.log("Asset Data to Send:", dataToSend); // For debugging
 
     try {
       const response = await fetch(`${API_IP}/api/add-new-asset`, {
@@ -31,7 +38,7 @@ const AssetAdditionalInfo = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(assetData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {

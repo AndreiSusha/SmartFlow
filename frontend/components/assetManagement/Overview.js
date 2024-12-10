@@ -10,14 +10,19 @@ const Overview = ({ asset }) => {
       value: asset.id,
     },
     {
-      iconName: "document-text-outline",
-      label: "Description",
-      value: asset.description,
-    },
-    {
       iconName: "location-outline",
       label: "Address",
       value: asset.address,
+    },
+    {
+      iconName: "pricetag-outline",
+      label: "Asset Type",
+      value: asset.asset_type,
+    },
+    {
+      iconName: "document-text-outline",
+      label: "Description",
+      value: asset.description,
     },
     {
       iconName: "call-outline",

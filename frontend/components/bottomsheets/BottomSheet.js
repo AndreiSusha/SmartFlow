@@ -9,6 +9,7 @@ import {
   Dimensions,
   Animated,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 
 const BottomSheet = ({ visible, onClose, options, onSelect }) => {
   const [animation] = useState(new Animated.Value(0));
@@ -57,6 +58,14 @@ const BottomSheet = ({ visible, onClose, options, onSelect }) => {
                     onClose();
                   }}
                 >
+                  {option.icon && (
+                    <Ionicons
+                      name={option.icon}
+                      size={24}
+                      color="#333"
+                      style={styles.optionIcon}
+                    />
+                  )}
                   <Text style={styles.optionText}>{option.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -84,9 +93,14 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   optionButton: {
+    flexDirection: 'row', 
+    alignItems: 'center', 
     paddingVertical: 15,
     borderBottomColor: '#eee',
     borderBottomWidth: 1,
+  },
+  optionIcon: {
+    marginRight: 15, 
   },
   optionText: {
     fontSize: 18,

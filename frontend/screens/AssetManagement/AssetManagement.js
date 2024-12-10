@@ -29,9 +29,6 @@ const AssetManagement = () => {
     if (showSuccessAddToast) {
       showToast("Success!", "The asset was added successfully.", "success");
     }
-    if (showSuccessDeleteToast) {
-      showToast("Success!", "The asset was deleted successfully.", "success");
-    }
   }, [showSuccessAddToast, showSuccessDeleteToast]);
 
   const {
