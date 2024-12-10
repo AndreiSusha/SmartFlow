@@ -1,6 +1,8 @@
 import express from 'express'; // Use `import` for ES modules
 import dotenv from 'dotenv'; // Use `import` for dotenv
 import mysql from 'mysql2/promise'; // Use mysql2's `promise` import
+// import bcrypt from 'bcrypt'; // For password hashing
+import jwt from 'jsonwebtoken'; // For token generation
 
 dotenv.config();
 
@@ -8,6 +10,22 @@ const app = express();
 
 // Middleware to parse JSON in request bodies
 app.use(express.json());
+
+// Middleware for JWT authentication
+const authenticateJWT = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ error: 'Access denied, token missing' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token is not valid' });
+    }
+    req.user = user; // Attach user info to the request
+    next();
+  });
+};
 
 // Create a MySQL connection pool
 const pool = mysql.createPool({
@@ -26,21 +44,35 @@ pool.getConnection()
     console.error('Database connection error: ', err);
   });
 
+  app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
 
-  app.get('/co2', async (req, res) => {
-    try {
-      // Correct the table name and column name
-      const [rows] = await pool.query('SELECT value FROM co2_measurements');
-      
-      // Log the result to the console
-      console.log('CO2 Data:', rows);  // Logs the query results
+    if (!email || !password) {
+      return res.status(400).send('Username and password are required');
+    }
   
-      res.json(rows);  // Send the data as the response
-    } catch (error) {
-      console.error('Error in fetching CO2 data:', error);
-      res.status(500).json({ error: 'Database error' });
+    try {
+      // Query the database to find the user by username
+      const [userResults] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+
+      if (userResults.length === 0) {
+        return res.status(400).send('Invalid credentials');
+      }
+
+      const user = userResults[0];
+
+      if (user.password_hash !== password) {
+        return res.status(400).send('Invalid credentials');
+      }
+    
+      res.json(user);
+    } catch(err){
+      console.error('Error checking login data:', err);
+      res.status(500).json({ error: 'Failed to checking login' });
     }
   });
+
+
   
  // API endpoint to see the assets
  app.get('/api/assets', async (req, res) => {

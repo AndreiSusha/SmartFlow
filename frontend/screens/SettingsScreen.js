@@ -14,10 +14,8 @@ import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { useAuthStore } from "../stores/authStore";
 
 export default function SettingsScreen() {
-
   const navigation = useNavigation();
-  const logout = useAuthStore((state) => state.logout);
-
+  const { isAdmin } = useAuthStore();
 
   return (
     <ScrollView style={styles.container}>
@@ -35,35 +33,41 @@ export default function SettingsScreen() {
 
       {/* Settings Options */}
       <View style={styles.settingsContainer}>
-        <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("UserManagement")}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="people-outline" size={24} color="#A0C287" />
-          </View>
-          <View style={styles.optionTextContainer}>
-              <Text style={styles.optionTitle}>User Management</Text>
-              <Text style={styles.optionSubtitle}>Manage Users</Text>
-          </View>
-          <View style={styles.arrowContainer}>
-            <MaterialIcons name="chevron-right" size={24} color="#777" />
-          </View>
-        </TouchableOpacity>
+        {isAdmin && (
+          <>
+            <TouchableOpacity
+              style={styles.option}
+              onPress={() => navigation.navigate("UserManagement")}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="people-outline" size={24} color="#A0C287" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>User Management</Text>
+                <Text style={styles.optionSubtitle}>Manage Users</Text>
+              </View>
+              <View style={styles.arrowContainer}>
+                <MaterialIcons name="chevron-right" size={24} color="#777" />
+              </View>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.option}
-          onPress={() => navigation.navigate("AssetManagement")}
-        >
-          <View style={styles.iconContainer}>
-            <MaterialIcons name="location-on" size={24} color="#A0C287" />
-          </View>
-          <View style={styles.optionTextContainer}>
-            <Text style={styles.optionTitle}>Asset Management</Text>
-            <Text style={styles.optionSubtitle}>Manage Locations</Text>
-          </View>
-          <View style={styles.arrowContainer}>
-            <MaterialIcons name="chevron-right" size={24} color="#777" />
-          </View>
-        </TouchableOpacity>
-
+            <TouchableOpacity
+              style={styles.option}
+              onPress={() => navigation.navigate("AssetManagement")}
+            >
+              <View style={styles.iconContainer}>
+                <MaterialIcons name="location-on" size={24} color="#A0C287" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={styles.optionTitle}>Asset Management</Text>
+                <Text style={styles.optionSubtitle}>Manage Locations</Text>
+              </View>
+              <View style={styles.arrowContainer}>
+                <MaterialIcons name="chevron-right" size={24} color="#777" />
+              </View>
+            </TouchableOpacity>
+          </>
+        )}
         <TouchableOpacity style={styles.option}>
           <View style={styles.iconContainer}>
             <FontAwesome5 name="lock" size={24} color="#A0C287" />
@@ -92,7 +96,10 @@ export default function SettingsScreen() {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={() => logout()}>
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={async () => await useAuthStore.getState().logout()}
+      >
         <View style={styles.iconContainer}>
           <MaterialIcons name="logout" size={20} color="#fff" />
         </View>

@@ -17,7 +17,7 @@ const UserDetails = ({ route, navigation, isModalVisible, setModalVisible }) => 
     const fetchUserDetails = async () => {
       try {
         console.log("Fetching details for user ID:", userId); 
-        const response = await axios.get(`${API_IP}/user/${userId}`);
+        const response = await axios.get(`${API_IP}user/${userId}`);
         // console.log("API Response:", response.data); 
        
         if (response.data && response.data.length > 0) {
