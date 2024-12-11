@@ -14,6 +14,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE
+});
+
 
 // Middleware for JWT authentication
 const authenticateJWT = (req, res, next) => {
@@ -34,10 +41,10 @@ const authenticateJWT = (req, res, next) => {
 
 
 // Variables
-let pool;
-const ssh = new NodeSSH();
+// let pool;
+// const ssh = new NodeSSH();
 
-console.log('Using database:', process.env.DB_NAME);
+// console.log('Using database:', process.env.DB_NAME);
 
 // async function initializeSSH() {
 //   try {
@@ -59,29 +66,29 @@ console.log('Using database:', process.env.DB_NAME);
 //   }
 // }
 
-async function initializeMySQL() {
-  try {
-    console.log('Creating MySQL pool...');
-    pool = mysql.createPool({
-      host: process.env.DB_HOST,  // MySQL is forwarded to localhost via SSH
-      port: process.env.DB_PORT,  // Local forwarded port
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      waitForConnections: true,
-    });
-    console.log('MySQL pool created!');
-  } catch (error) {
-    console.error('Failed to initialize MySQL:', error);
-    process.exit(1); // Exit the process if initialization fails
-  }
-}
+// async function initializeMySQL() {
+//   try {
+//     console.log('Creating MySQL pool...');
+//     pool = mysql.createPool({
+//       host: process.env.DB_HOST,  // MySQL is forwarded to localhost via SSH
+//       port: process.env.DB_PORT,  // Local forwarded port
+//       user: process.env.DB_USER,
+//       password: process.env.DB_PASSWORD,
+//       database: process.env.DB_NAME,
+//       waitForConnections: true,
+//     });
+//     console.log('MySQL pool created!');
+//   } catch (error) {
+//     console.error('Failed to initialize MySQL:', error);
+//     process.exit(1); // Exit the process if initialization fails
+//   }
+// }
 
 
-async function initialize() {
-  //await initializeSSH(); // Initialize SSH first
-  await initializeMySQL(); // Then initialize MySQL
-}
+// async function initialize() {
+//   //await initializeSSH(); // Initialize SSH first
+//   await initializeMySQL(); // Then initialize MySQL
+// }
 
   app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
@@ -972,13 +979,17 @@ app.post('/user', async (req, res) => {
   }
 });
 
-
-
-// Call initialize before starting the server
-initialize().then(() => {
-  // Start the Express server
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+
+
+// // Call initialize before starting the server
+// initialize().then(() => {
+//   // Start the Express server
+//   const PORT = process.env.PORT || 3000;
+//   app.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`);
+//   });
+// });
