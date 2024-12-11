@@ -12,8 +12,8 @@ import Input from "@components/Input";
 import { ActivityIndicator } from "react-native"; // Add this import statement
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState("shreyak@gmail.com");
-  const [password, setPassword] = useState("shreya");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigation = useNavigation();
   const { loading } = useAuthStore();
 
