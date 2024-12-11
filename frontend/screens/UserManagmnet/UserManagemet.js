@@ -3,19 +3,21 @@ import { StyleSheet, Text, View, TextInput, ActivityIndicator, ScrollView } from
 import axios from 'axios';
 import { UserCard } from '../../components/userManagmnet/UserCard';
 import { useNavigation } from '@react-navigation/native';
+import { useAuthStore } from '../../stores/authStore';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]); // State for users
   const [loading, setLoading] = useState(true); // State for loading
   const [search, setSearch] = useState(''); // State for search
   const navigation = useNavigation();
+  const {  user } = useAuthStore();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
   useEffect(() => {
     const fetchUsers = async () => {
       try {
 
-        const response = await axios.get(`${API_IP}users/3`);
+        const response = await axios.get(`${API_IP}users/${user.customer}`);
         // const response = await axios.get('http://192.168.0.103:3000/users/3');
 
         // Filter users with role_id 2

@@ -15,7 +15,10 @@ import { useAuthStore } from "../stores/authStore";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-  const { isAdmin } = useAuthStore();
+  const { isAdmin, user } = useAuthStore();
+
+  console.log('user')
+  console.log(user)
 
   return (
     <ScrollView style={styles.container}>
@@ -26,8 +29,8 @@ export default function SettingsScreen() {
           style={styles.profileImage}
         />
         <View>
-          <Text style={styles.profileName}>Kostas Viltrakis</Text>
-          <Text style={styles.profileEmail}>kostas@info.com</Text>
+          <Text style={styles.profileName}>{user?.name || "Guest"}</Text>
+          <Text style={styles.profileEmail}>{user?.email || "guest@example.com"}</Text>
         </View>
       </View>
 
