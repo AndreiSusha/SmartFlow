@@ -16,25 +16,25 @@ const ssh = new NodeSSH();
 
 console.log('Using database:', process.env.DB_NAME);
 
-async function initializeSSH() {
-  try {
-    console.log('Establishing SSH connection...');
-    await ssh.connect({
-      host: process.env.SSH_HOST,
-      port: parseInt(process.env.SSH_PORT, 10),
-      username: process.env.SSH_USER,
-      password: process.env.SSH_PASSWORD,
-    });
-    console.log('SSH connection successful!');
+// async function initializeSSH() {
+//   try {
+//     console.log('Establishing SSH connection...');
+//     await ssh.connect({
+//       host: process.env.SSH_HOST,
+//       port: parseInt(process.env.SSH_PORT, 10),
+//       username: process.env.SSH_USER,
+//       password: process.env.SSH_PASSWORD,
+//     });
+//     console.log('SSH connection successful!');
 
-    console.log('Forwarding port 3307...');
-    await ssh.forwardIn('127.0.0.1', 3307); // Local port forwarded to remote MySQL port
-    console.log('Port forwarding successful!');
-  } catch (error) {
-    console.error('SSH connection error:', error);
-    process.exit(1); // Stop the app if SSH fails
-  }
-}
+//     console.log('Forwarding port 3307...');
+//     await ssh.forwardIn('127.0.0.1', 3309); // Local port forwarded to remote MySQL port
+//     console.log('Port forwarding successful!');
+//   } catch (error) {
+//     console.error('SSH connection error:', error);
+//     process.exit(1); // Stop the app if SSH fails
+//   }
+// }
 
 async function initializeMySQL() {
   try {
@@ -55,7 +55,7 @@ async function initializeMySQL() {
 }
 
 async function initialize() {
-  await initializeSSH(); // Initialize SSH first
+  //await initializeSSH(); // Initialize SSH first
   await initializeMySQL(); // Then initialize MySQL
 }
 
@@ -751,21 +751,29 @@ app.get('/user/:id', async (req, res) => {
 });
 
 
-
-
-
 // Update a user by ID
 app.put('/user/:id', async (req, res) => {
   const userId = req.params.id;
-  const { username, email, password_hash, role_id, customer_id, asset_id, asset_name } = req.body;
+  const {
+    username,
+    email,
+    password_hash,
+    role_id,
+    customer_id,
+    asset_id,
+    asset_name,
+    phone_number,
+    user_summary,
+  } = req.body;
 
-  console.log(req.body);
-
-  if (!username && !email && !password_hash && !role_id && !customer_id && !asset_id && !asset_name) {
+  if (!username && !email && !password_hash && !role_id && !customer_id && !asset_id && !asset_name && !phone_number && !user_summary) {
     return res.status(400).send('No fields to update');
   }
 
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
+
     let updateResults = {
       userUpdated: false,
       assetUpdated: false,
@@ -776,7 +784,6 @@ app.put('/user/:id', async (req, res) => {
     const userFields = [];
     const userValues = [];
 
-    // Dynamically build the SQL query for the `users` table
     if (username) {
       userFields.push('username = ?');
       userValues.push(username);
@@ -797,29 +804,32 @@ app.put('/user/:id', async (req, res) => {
       userFields.push('customer_id = ?');
       userValues.push(customer_id);
     }
+    if (phone_number) {
+      userFields.push('phone_number = ?');
+      userValues.push(phone_number);
+    }
+    if (user_summary) {
+      userFields.push('user_summary = ?');
+      userValues.push(user_summary);
+    }
 
     userValues.push(userId);
 
-    // Update the `users` table
     if (userFields.length > 0) {
       const userQuery = `UPDATE users SET ${userFields.join(', ')} WHERE id = ?`;
-      const [userResult] = await pool.query(userQuery, userValues);
-      if (userResult.affectedRows > 0) {
-        updateResults.userUpdated = true;
-      } else {
-        updateResults.errors.push('User not found');
-      }
+      const [userResult] = await connection.query(userQuery, userValues);
+      if (userResult.affectedRows > 0) updateResults.userUpdated = true;
+      else updateResults.errors.push('User not found');
     }
 
-    // Update the `assets` table
     if (asset_id || asset_name) {
       const assetCheckQuery = `SELECT id FROM assets WHERE id = ?`;
-      const [assetCheckResult] = await pool.query(assetCheckQuery, [asset_id]);
+      const [assetCheckResult] = await connection.query(assetCheckQuery, [asset_id]);
 
       if (assetCheckResult.length > 0) {
         if (asset_name) {
           const assetUpdateQuery = `UPDATE assets SET name = ? WHERE id = ?`;
-          await pool.query(assetUpdateQuery, [asset_name, asset_id]);
+          await connection.query(assetUpdateQuery, [asset_name, asset_id]);
           updateResults.assetUpdated = true;
         }
 
@@ -829,31 +839,39 @@ app.put('/user/:id', async (req, res) => {
             VALUES (?, ?)
             ON DUPLICATE KEY UPDATE asset_id = VALUES(asset_id);
           `;
-          await pool.query(userAssetQuery, [userId, asset_id]);
+          await connection.query(userAssetQuery, [userId, asset_id]);
           updateResults.assetAssigned = true;
         }
       } else {
-        updateResults.errors.push('Asset not found');
+        updateResults.errors.push(`Asset with ID ${asset_id} not found`);
       }
     }
 
-    // Return a detailed result
-    res.status(updateResults.errors.length ? 207 : 200).json(updateResults);
+    await connection.commit();
+
+    const [updatedUser] = await connection.query(`SELECT * FROM users WHERE id = ?`, [userId]);
+    res.status(200).json({ updateResults, updatedUser });
   } catch (err) {
+    await connection.rollback();
     console.error('Error updating user and assets:', err.stack);
     res.status(500).send('Error updating user and assets');
+  } finally {
+    connection.release();
   }
 });
-
 
 // Delete a user by ID
 app.delete('/user/:id', async (req, res) => {
   const userId = req.params.id;
 
+  if (!userId) {
+    return res.status(400).send('User ID is required');
+  }
+
   try {
     // Delete related data first
     await pool.query('DELETE FROM user_assets WHERE user_id = ?', [userId]);
-    
+
     // Then delete the user
     const [result] = await pool.query('DELETE FROM users WHERE id = ?', [userId]);
 
@@ -867,7 +885,6 @@ app.delete('/user/:id', async (req, res) => {
     res.status(500).send('Error deleting user');
   }
 });
-
 
 
 // Add a new user
