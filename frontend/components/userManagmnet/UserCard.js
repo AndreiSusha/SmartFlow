@@ -1,13 +1,20 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity,Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Reusable UserCard Component
-const UserCard = ({ name, branch, onPress }) => {
+const UserCard = ({ name, branch,image, onPress }) => {
   return (
     <TouchableOpacity style={styles.userContainer} onPress={onPress}>
       <View style={styles.user}>
-        <View style={styles.Image}></View>
+      <Image
+          style={styles.image}
+          source={
+            image
+              ? { uri: image } // Use the provided image URL
+              : require('../../../frontend/assets/images/user_icon.jpg') // Use default image
+          }
+        />
         <View style={styles.Info}>
           <Text style={styles.userTitle}>{name}</Text>
           <Text style={styles.userBranch}>{branch}</Text>
@@ -58,6 +65,13 @@ const styles = StyleSheet.create({
   userBranch: {
     fontSize: 14,
     color: '#777',
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 50,
+    marginRight: 10,
+    backgroundColor: '#e0e0e0',
   },
 });
 
