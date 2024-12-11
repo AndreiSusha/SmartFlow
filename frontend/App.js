@@ -1,3 +1,4 @@
+
 import React,{useEffect} from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -14,6 +15,8 @@ import AppNavigator from "./navigation/AppNavigator";
 
 
 
+
+
 const App = () => {
   const [fontsLoaded] = useFonts(customFonts);
 
@@ -26,21 +29,19 @@ const App = () => {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#53B6C7" />
       </View>
     );
   }
   return (
     <>
-
       <UserProvider>
         <NavigationContainer>
           {isAuthenticated ? <TabNavigator /> : <AuthNavigator />}
         </NavigationContainer>
         <ToastNotification />
       </UserProvider>
-
     </>
   );
 };

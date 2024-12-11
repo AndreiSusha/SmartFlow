@@ -11,10 +11,14 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.6",
     "express": "^4.21.1",
+
     "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.11.4",
-    "node-ssh": "^13.2.0"
+    "mysql2": "^3.11.5",
+    "node-ssh": "^13.2.0",
+    "node-ssh-forward": "^0.7.2",
+    "tunnel-ssh": "^5.1.2"
+
   }
 }
