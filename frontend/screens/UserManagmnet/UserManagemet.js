@@ -26,7 +26,7 @@ const UserManagement = () => {
    const fetchUsers = useCallback(async () => {
     try {
       setLoading(true); // Start loading
-      const response = await axios.get(`${API_IP}users/3`);
+      const response = await axios.get(`${API_IP}users/${user.customer}`);
       // Filter users with role_id 2
       const filteredUsers = response.data.filter(
         (user) => user.role_id === 2
@@ -38,24 +38,6 @@ const UserManagement = () => {
       setLoading(false); // Stop loading
     }
   }, [API_IP]);
-
-
-        const response = await axios.get(`${API_IP}users/${user.customer}`);
-        // const response = await axios.get('http://192.168.0.103:3000/users/3');
-
-        // Filter users with role_id 2
-        const filteredUsers = response.data.filter(user => user.role_id === 2);
-
-        setUsers(filteredUsers); // Update state with filtered users
-      } catch (error) {
-        console.error('Error fetching users:', error); // Log any errors
-      } finally {
-        setLoading(false); // Stop loading
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   // Refresh the user list when the screen is focused
   useFocusEffect(
