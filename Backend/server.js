@@ -1,7 +1,11 @@
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-import express from 'express';
+
+import express from 'express'; // Use `import` for ES modules
+import dotenv from 'dotenv'; // Use `import` for dotenv
+import mysql from 'mysql2/promise'; // Use mysql2's `promise` import
+// import bcrypt from 'bcrypt'; // For password hashing
+import jwt from 'jsonwebtoken'; // For token generation
 import { NodeSSH } from 'node-ssh'; 
+
 
 // Load environment variables
 dotenv.config();
@@ -9,6 +13,25 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 app.use(express.json());
+
+
+// Middleware for JWT authentication
+const authenticateJWT = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ error: 'Access denied, token missing' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token is not valid' });
+    }
+    req.user = user; // Attach user info to the request
+    next();
+  });
+};
+
+
 
 // Variables
 let pool;
@@ -54,11 +77,43 @@ async function initializeMySQL() {
   }
 }
 
+
 async function initialize() {
   //await initializeSSH(); // Initialize SSH first
   await initializeMySQL(); // Then initialize MySQL
 }
 
+  app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+
+
+    if (!email || !password) {
+      return res.status(400).send('Username and password are required');
+    }
+  
+    try {
+      // Query the database to find the user by username
+      const [userResults] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+
+      if (userResults.length === 0) {
+        return res.status(400).send('Invalid credentials');
+      }
+
+      const user = userResults[0];
+
+      if (user.password_hash !== password) {
+        return res.status(400).send('Invalid credentials');
+      }
+    
+      res.json(user);
+    } catch(err){
+      console.error('Error checking login data:', err);
+      res.status(500).json({ error: 'Failed to checking login' });
+    }
+  });
+
+
+  
 
  // API endpoint to see the assets
  app.get('/api/assets', async (req, res) => {

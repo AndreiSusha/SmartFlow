@@ -16,7 +16,7 @@ const EditUser = ({ route, navigation }) => {
   const [location, setLocation] = useState(null);
   const [summary, setSummary] = useState(null);
   const [phone, setPhone] = useState(null);
-
+  const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
   useEffect(() => {
     if(!userDetails) return; 
     setUserId(userDetails.id);
@@ -50,7 +50,9 @@ const EditUser = ({ route, navigation }) => {
 
   const handleSave = async () => {
     try {
+
       const response = await axios.put(`${API_IP}user/${userId}`, {
+
         username,
         email,
         asset_name: location,
@@ -101,28 +103,6 @@ const EditUser = ({ route, navigation }) => {
         value={summary}
         onUpdateValue={setSummary}
       />
-
-      {/* <Text style={styles.label}>Assigned Location</Text>
-      <TextInput
-        style={styles.input}
-        value={location}
-        onChangeText={setLocation}
-      /> */}
-
-      {/* <Text style={styles.label}>Phone Number</Text>
-      <TextInput
-        style={styles.input}
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-      /> */}
-
-      {/* <Text style={styles.label}>User Summary</Text>
-      <TextInput
-        style={styles.input}
-        value={summary}
-        onChangeText={setSummary}
-      /> */}
 
       <View style={styles.buttonContainer}>
         {/* <Button title="Save" onPress={handleSave} /> */}

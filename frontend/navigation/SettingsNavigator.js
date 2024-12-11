@@ -14,8 +14,6 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmationModal from "@components/ConfirmationModal";
 import { useUserContext } from "../UserContext";
 import axios from 'axios';
-import EnterAssetDetails from "../screens/AssetManagement/AddAsset/EnterAssetDetails";
-
 
 const Stack = createStackNavigator();
 

@@ -49,6 +49,7 @@ const UserDetails = ({
         console.error("User not found. Staying on the current screen.");
         setUserDetails(null); // Handle gracefully instead of navigating
       } else {
+
         console.error('Error fetching user details:', error);
       }
     } finally {
