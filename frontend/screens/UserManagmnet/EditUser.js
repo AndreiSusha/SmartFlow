@@ -50,7 +50,7 @@ const EditUser = ({ route, navigation }) => {
 
   const handleSave = async () => { 
     try {
-      const response = await axios.put(`${API_IP}user/${userId}`, {
+      const response = await axios.put(`${API_IP}/user/${userId}`, {
         username,
         email,
         asset_name: location,

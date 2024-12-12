@@ -1,63 +1,101 @@
-import { useEffect, useLayoutEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import ElectricityReport from "../../components/reports/electricityReport";
+import Co2Report from "../../components/reports/co2Report";
+import HumidityReport from "../../components/reports/humidityReport";
+import LightReport from "../../components/reports/lightReport";
+import TemperatureReport from "../../components/reports/temperatureReport";
+import VddReport from "../../components/reports/vddReport";
 import { useNavigation } from "@react-navigation/native";
 import { Platform } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { getReportDetails } from "../../api/ReportsApi";
+import { MEASUREMENT_CONFIG } from "../../constants/measurementTypes";
 
-const ReportDetails = () => {
+const REPORT_COMPONENTS = {
+  co2_measurements: Co2Report,
+  humidity_measurements: HumidityReport,
+  light_measurements: LightReport,
+  temperature_measurements: TemperatureReport,
+  vdd_measurements: VddReport,
+  electricity_measurements: ElectricityReport,
+};
+
+const ReportDetails = ({ route }) => {
   const navigation = useNavigation();
-  const today = new Date();
+  const { measurementType, unit } = route.params;
 
-  const DATA_WEEKLY = Array.from({ length: 7 }, (_, i) => ({
-    day: i + 1,
-    kWh: Math.random() * 10 + 5,
-    cost: (Math.random() * 10 + 5) * 0.2,
-  }));
+  const [period, setPeriod] = useState("last_week");
 
-  const DATA_MONTHLY = Array.from({ length: 13 }, (_, i) => {
-    const weekStartDate = new Date(today);
-    weekStartDate.setDate(weekStartDate.getDate() - (12 - i) * 7);
-    const weekLabel = weekStartDate.toLocaleDateString("default", {
-      month: "numeric",
-      day: "numeric",
-    });
-    return {
-      weekIndex: i + 1,
-      weekLabel,
-      kWh: Math.random() * 70 + 30,
-      cost: (Math.random() * 70 + 30) * 0.2,
-    };
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["ReportDetails", measurementType, period],
+    queryFn: () => getReportDetails(3, measurementType, period),
+    enabled: !!measurementType,
   });
 
-  const DATA_YEARLY = Array.from({ length: 12 }, (_, i) => ({
-    month: i + 1,
-    kWh: Math.random() * 300 + 100,
-    cost: (Math.random() * 300 + 100) * 0.2,
-  }));
+  const config = MEASUREMENT_CONFIG[measurementType] || {
+    title: measurementType,
+  };
 
-  useEffect(() => {
-    console.log("DATA_WEEKLY:", DATA_WEEKLY);
-    console.log("DATA_MONTHLY:", DATA_MONTHLY);
-    console.log("DATA_YEARLY:", DATA_YEARLY);
-  }, []);
+  let weekly_data = [];
+  let monthly_data = [];
+  let yearly_data = [];
+
+  const ReportComponent = REPORT_COMPONENTS[measurementType];
+
+
+  if (data && Array.isArray(data)) {
+    if (period === "last_week") {
+      weekly_data = data.map((item) => ({
+        date: new Date(item.date).getTime(),
+        kWh: item.averageValue,
+        cost: item.averageValue * 0.2,
+      }));
+    } else if (period === "last_3_months") {
+      monthly_data = data.map((item) => ({
+        date: new Date(item.date).getTime(),
+        kWh: item.averageValue || 0,
+        cost: (item.averageValue || 0) * 0.2,
+      }));
+      console.log("monthly_data: ", monthly_data);
+    } else if (period === "past_year") {
+      yearly_data = data.map((item) => ({
+        date: new Date(item.monthLabel).getTime(),
+        kWh: item.averageValue || 0,
+        cost: (item.averageValue || 0) * 0.2,
+      }));
+      console.log("yearly_data: ", yearly_data);
+    }
+  }
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: "Electricity Report",
+      title: `${config.title} Report`,
       headerStyle: {
         backgroundColor: "transparent",
-        elevation: Platform.OS === "android" ? 0 : undefined, // Removes shadow on Android
+        elevation: Platform.OS === "android" ? 0 : undefined,
       },
       headerTintColor: "#53B6C7",
       headerBackTitleVisible: false,
       headerTitleAlign: "center",
     });
-  }, [navigation]);
+  }, [navigation, config.title]);
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError) {
+    return <Text>Error: {error.message}</Text>;
+  }
 
   return (
-    <ElectricityReport
-      weekly_data={DATA_WEEKLY}
-      monthly_data={DATA_MONTHLY}
-      yearly_data={DATA_YEARLY}
+    <ReportComponent
+      weekly_data={weekly_data}
+      monthly_data={monthly_data}
+      yearly_data={yearly_data}
+      period={period}
+      setPeriod={setPeriod}
+      unit={unit}
     />
   );
 };

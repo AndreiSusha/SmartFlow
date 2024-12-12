@@ -5,7 +5,7 @@ import {
   ScrollView,
   Text,
 } from "react-native";
-import React, { useEffect} from "react";
+import React, { useEffect } from "react";
 import AssetCard from "../../components/assetManagement/AssetCard";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
@@ -13,25 +13,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { getAssets } from "../../api/AssetApi";
 
-
 const AssetManagement = () => {
-
   const navigation = useNavigation();
   const route = useRoute();
   const { showSuccessAddToast, showSuccessDeleteToast } = route.params || {};
   const { showToast } = useToastStore();
 
-  useEffect(() => {
-    console.log(assets);
-  }, [assets]);
-  
 
   useEffect(() => {
     if (showSuccessAddToast) {
       showToast("Success!", "The asset was added successfully.", "success");
     }
   }, [showSuccessAddToast, showSuccessDeleteToast]);
-
 
   const {
     data: assets,
@@ -60,7 +53,9 @@ const AssetManagement = () => {
             title={asset.asset.name}
             address={asset.location.address}
             users={asset.usersAssigned}
-            onPress={() => navigation.navigate("AssetDetails", { id: asset.asset.id })}
+            onPress={() =>
+              navigation.navigate("AssetDetails", { id: asset.asset.id })
+            }
           />
         ))}
       </ScrollView>
@@ -92,8 +87,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   scrollContainer: {
-    paddingBottom: 30
-  }
+    paddingBottom: 30,
+  },
 });
 
 export default AssetManagement;

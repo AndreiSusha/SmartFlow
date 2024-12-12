@@ -32,8 +32,8 @@ const UserDetails = ({
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-onsole.log('Fetching details for user ID:', userId);
-         const response = await axios.get(`${API_IP}user/${userId}`
+console.log('Fetching details for user ID:', userId);
+         const response = await axios.get(`${API_IP}/user/${userId}`
         );
         // console.log("API Response:", response.data);
 
@@ -88,7 +88,7 @@ onsole.log('Fetching details for user ID:', userId);
           <Ionicons name="location-outline" size={30} color="#000" />
         </View>
         <View style={styles.detail}>
-          <Text style={styles.title}>Assigned Location</Text>
+          <Text style={styles.title}>Assigned Assets</Text>
           <Text style={styles.details}>{userDetails.asset_name}</Text>
         </View>
       </View>

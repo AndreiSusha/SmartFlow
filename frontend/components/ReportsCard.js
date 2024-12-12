@@ -1,31 +1,20 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const ICONS = {
-  electricity: "flash-outline",
-  water: "water-outline",
-  temperature: "thermometer-outline",
-  co2: "cloud-outline",
-  waste: "trash-outline",
-  renewable_energy: "sunny-outline",
-  solar_energy: "battery-charging-outline",
-};
-
-const ReportsCard = ({ title, monthlyDigit, onClick }) => {
+const ReportsCard = ({ title, iconName, onClick }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onClick}>
       <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
         <View style={styles.iconWrapper}>
           <Ionicons
-            name={ICONS[title] || "help-outline"}
+            name={iconName || "help-outline"}
             size={24}
             color="#007AFF"
           />
         </View>
 
         <View style={styles.textWrapper}>
-          <Text style={styles.monthlyDigit}>{monthlyDigit}</Text>
           <Text style={styles.title}>{title}</Text>
         </View>
       </View>
@@ -63,13 +52,9 @@ const styles = StyleSheet.create({
   textWrapper: {
     flex: 1,
   },
-  monthlyDigit: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
   title: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "bold",
   },
 });

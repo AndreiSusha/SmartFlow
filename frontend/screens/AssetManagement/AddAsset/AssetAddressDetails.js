@@ -17,13 +17,13 @@ const AssetAddressDetails = () => {
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const { updateLocationData } = useContext(AssetDataContext);
+  const { updateNewLocationField } = useContext(AssetDataContext);
   const navigation = useNavigation();
 
   const handleContinue = () => {
-    updateLocationData("city", city);
-    updateLocationData("address", address);
-    updateLocationData("zipCode", postalCode);
+    updateNewLocationField("city", city);
+    updateNewLocationField("address", address);
+    updateNewLocationField("zipCode", postalCode);
     navigation.navigate("AssetAdditionalInfo");
   };
 
