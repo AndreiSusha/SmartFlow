@@ -1,9 +1,9 @@
-import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
-import WelcomeScreen from "../screens/WelcomeScreen";
-import RegisterScreen from "../screens/RegisterScreen";
-import LoginScreen from "../screens/LoginScreen";
-import HomeScreen from "../screens/HomeScreen";
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+import LoginScreen from '../screens/LoginScreen';
+import HomeScreen from '../screens/HomeScreen';
 
 const AuthNavigator = () => {
   const Stack = createStackNavigator();
@@ -23,10 +23,21 @@ const AuthNavigator = () => {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ headerShown: true }}
+        options={{
+          headerTitle: 'Welcome back!',
+          headerTintColor: '#53B6C7',
+          headerLeft: () => null,
+        }}
       />
-    <Stack.Screen name="Home" component={HomeScreen} />
-
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          headerTitle: 'Home',
+          headerTintColor: '#53B6C7',
+          headerLeft: () => null,
+        }}
+      />
     </Stack.Navigator>
   );
 };
