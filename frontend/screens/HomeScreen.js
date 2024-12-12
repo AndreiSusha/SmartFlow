@@ -12,7 +12,8 @@ import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
 import Constants from 'expo-constants';
 
-const API_URL = `${Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL}/api/measurements/last-calendar-month`;
+// const API_URL = `${Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL}/api/measurements/last-calendar-month`;
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
@@ -37,7 +38,9 @@ const HomeScreen = ({ navigation }) => {
 
   const fetchMeasurements = async (month) => {
     try {
-      const response = await fetch(`${API_URL}?month=${month}`);
+      const response = await fetch(
+        `${API_IP}api/measurements/last-calendar-month?month=${month}`
+      );
       if (!response.ok) {
         throw new Error(`API Error: ${response.status}`);
       }

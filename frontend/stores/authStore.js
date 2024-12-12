@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 export const useAuthStore = create((set) => ({
   isAuthenticated: false,
   loading: false,
@@ -11,7 +11,7 @@ export const useAuthStore = create((set) => ({
     set({ loading: true });
 
     try {
-      const response = await fetch('http://192.168.0.103:3000/api/login', {
+      const response = await fetch(`${API_IP}api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -23,19 +23,21 @@ export const useAuthStore = create((set) => ({
       });
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed");
+        throw new Error(data.message || 'Login failed');
       }
 
       const data = await response.json();
       set({
-         isAdmin: data.role_id === 1,
-         user: { name: data.username, email: data.email, customer: data.customer_id }
-        });
-
+        isAdmin: data.role_id === 1,
+        user: {
+          name: data.username,
+          email: data.email,
+          customer: data.customer_id,
+        },
+      });
 
       await AsyncStorage.setItem('isAuthenticated', 'true');
       set({ isAuthenticated: true });
-
     } catch (error) {
       console.error('Login error:', error);
       throw new Error('Login failed. Please try again.');
