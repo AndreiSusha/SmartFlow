@@ -1,7 +1,10 @@
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-import express from 'express';
-import { NodeSSH } from 'node-ssh';
+import express from 'express'; // Use `import` for ES modules
+import dotenv from 'dotenv'; // Use `import` for dotenv
+import mysql from 'mysql2/promise'; // Use mysql2's `promise` import
+// import bcrypt from 'bcrypt'; // For password hashing
+import jwt from 'jsonwebtoken'; // For token generation
+import { NodeSSH } from 'node-ssh'; 
+
 
 // Load environment variables
 dotenv.config();
@@ -9,6 +12,30 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 app.use(express.json());
+
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE
+});
+
+
+// Middleware for JWT authentication
+const authenticateJWT = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ error: 'Access denied, token missing' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token is not valid' });
+    }
+    req.user = user; // Attach user info to the request
+    next();
+  });
+};
 
 // Variables
 // let pool;
@@ -28,7 +55,7 @@ app.use(express.json());
 //     console.log('SSH connection successful!');
 
 //     console.log('Forwarding port 3307...');
-//     await ssh.forwardIn('127.0.0.1', 3307); // Local port forwarded to remote MySQL port
+//     await ssh.forwardIn('127.0.0.1', 3309); // Local port forwarded to remote MySQL port
 //     console.log('Port forwarding successful!');
 //   } catch (error) {
 //     console.error('SSH connection error:', error);
@@ -40,8 +67,8 @@ app.use(express.json());
 //   try {
 //     console.log('Creating MySQL pool...');
 //     pool = mysql.createPool({
-//       host: process.env.DB_HOST, // MySQL is forwarded to localhost via SSH
-//       port: process.env.DB_PORT, // Local forwarded port
+//       host: process.env.DB_HOST,  // MySQL is forwarded to localhost via SSH
+//       port: process.env.DB_PORT,  // Local forwarded port
 //       user: process.env.DB_USER,
 //       password: process.env.DB_PASSWORD,
 //       database: process.env.DB_NAME,
@@ -55,16 +82,39 @@ app.use(express.json());
 // }
 
 // async function initialize() {
-//   await initializeSSH(); // Initialize SSH first
+//   //await initializeSSH(); // Initialize SSH first
 //   await initializeMySQL(); // Then initialize MySQL
 // }
 
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-});
+  app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+
+
+    if (!email || !password) {
+      return res.status(400).send('Username and password are required');
+    }
+  
+    try {
+      // Query the database to find the user by username
+      const [userResults] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+
+      if (userResults.length === 0) {
+        return res.status(400).send('Invalid credentials');
+      }
+
+      const user = userResults[0];
+
+      if (user.password_hash !== password) {
+        return res.status(400).send('Invalid credentials');
+      }
+    
+      res.json(user);
+    } catch(err){
+      console.error('Error checking login data:', err);
+      res.status(500).json({ error: 'Failed to checking login' });
+    }
+  });
+
 
 // API endpoint to see the assets
 app.get('/api/assets', async (req, res) => {
@@ -826,23 +876,18 @@ app.put('/user/:id', async (req, res) => {
     customer_id,
     asset_id,
     asset_name,
+    phone_number,
+    user_summary,
   } = req.body;
 
-  console.log(req.body);
-
-  if (
-    !username &&
-    !email &&
-    !password_hash &&
-    !role_id &&
-    !customer_id &&
-    !asset_id &&
-    !asset_name
-  ) {
+  if (!username && !email && !password_hash && !role_id && !customer_id && !asset_id && !asset_name && !phone_number && !user_summary) {
     return res.status(400).send('No fields to update');
   }
 
+  const connection = await pool.getConnection();
   try {
+    await connection.beginTransaction();
+
     let updateResults = {
       userUpdated: false,
       assetUpdated: false,
@@ -853,7 +898,6 @@ app.put('/user/:id', async (req, res) => {
     const userFields = [];
     const userValues = [];
 
-    // Dynamically build the SQL query for the `users` table
     if (username) {
       userFields.push('username = ?');
       userValues.push(username);
@@ -874,31 +918,32 @@ app.put('/user/:id', async (req, res) => {
       userFields.push('customer_id = ?');
       userValues.push(customer_id);
     }
+    if (phone_number) {
+      userFields.push('phone_number = ?');
+      userValues.push(phone_number);
+    }
+    if (user_summary) {
+      userFields.push('user_summary = ?');
+      userValues.push(user_summary);
+    }
 
     userValues.push(userId);
 
-    // Update the `users` table
     if (userFields.length > 0) {
-      const userQuery = `UPDATE users SET ${userFields.join(
-        ', '
-      )} WHERE id = ?`;
-      const [userResult] = await pool.query(userQuery, userValues);
-      if (userResult.affectedRows > 0) {
-        updateResults.userUpdated = true;
-      } else {
-        updateResults.errors.push('User not found');
-      }
+      const userQuery = `UPDATE users SET ${userFields.join(', ')} WHERE id = ?`;
+      const [userResult] = await connection.query(userQuery, userValues);
+      if (userResult.affectedRows > 0) updateResults.userUpdated = true;
+      else updateResults.errors.push('User not found');
     }
 
-    // Update the `assets` table
     if (asset_id || asset_name) {
       const assetCheckQuery = `SELECT id FROM assets WHERE id = ?`;
-      const [assetCheckResult] = await pool.query(assetCheckQuery, [asset_id]);
+      const [assetCheckResult] = await connection.query(assetCheckQuery, [asset_id]);
 
       if (assetCheckResult.length > 0) {
         if (asset_name) {
           const assetUpdateQuery = `UPDATE assets SET name = ? WHERE id = ?`;
-          await pool.query(assetUpdateQuery, [asset_name, asset_id]);
+          await connection.query(assetUpdateQuery, [asset_name, asset_id]);
           updateResults.assetUpdated = true;
         }
 
@@ -908,25 +953,34 @@ app.put('/user/:id', async (req, res) => {
             VALUES (?, ?)
             ON DUPLICATE KEY UPDATE asset_id = VALUES(asset_id);
           `;
-          await pool.query(userAssetQuery, [userId, asset_id]);
+          await connection.query(userAssetQuery, [userId, asset_id]);
           updateResults.assetAssigned = true;
         }
       } else {
-        updateResults.errors.push('Asset not found');
+        updateResults.errors.push(`Asset with ID ${asset_id} not found`);
       }
     }
 
-    // Return a detailed result
-    res.status(updateResults.errors.length ? 207 : 200).json(updateResults);
+    await connection.commit();
+
+    const [updatedUser] = await connection.query(`SELECT * FROM users WHERE id = ?`, [userId]);
+    res.status(200).json({ updateResults, updatedUser });
   } catch (err) {
+    await connection.rollback();
     console.error('Error updating user and assets:', err.stack);
     res.status(500).send('Error updating user and assets');
+  } finally {
+    connection.release();
   }
 });
 
 // Delete a user by ID
 app.delete('/user/:id', async (req, res) => {
   const userId = req.params.id;
+
+  if (!userId) {
+    return res.status(400).send('User ID is required');
+  }
 
   try {
     // Delete related data first
@@ -984,7 +1038,6 @@ app.post('/user', async (req, res) => {
   }
 });
 
-// Call initialize before starting the server
 // initialize().then(() => {
 //   // Start the Express server
 //   const PORT = process.env.PORT || 3000;
@@ -996,3 +1049,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+

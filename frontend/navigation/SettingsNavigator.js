@@ -14,8 +14,6 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmationModal from "@components/ConfirmationModal";
 import { useUserContext } from "../UserContext";
 import axios from 'axios';
-import EnterAssetDetails from "../screens/AssetManagement/AddAsset/EnterAssetDetails";
-
 
 const Stack = createStackNavigator();
 
@@ -27,31 +25,52 @@ const SettingsNavigator = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
+  const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
   const handleDeleteUser = async () => {
     setIsLoading(true);
     setModalVisible(false);
+  
     try {
-      await axios.delete(`http://192.168.0.103:3000/user/${userIdToDelete}`);
-      removeUser(userIdToDelete);
-      alert("User deleted successfully");
-      navigation.goBack();
-    } catch (error) {
-      if (error.response) {
-        console.error("Error response from server:", error.response.data);
-        alert(`Failed to delete user: ${error.response.data.message || "Server error"}`);
-      } else if (error.request) {
-        console.error("No response from server:", error.request);
-        alert("Failed to delete user: No response from server. Check your connection.");
-      } else {
-        console.error("Error setting up request:", error.message);
-        alert(`Failed to delete user: ${error.message}`);
+      if (!userIdToDelete) {
+        alert("User ID is missing. Cannot delete user.");
+        setIsLoading(false);
+        return;
       }
+  
+      const response = await axios.delete(`${API_IP}user/${userIdToDelete}`);
+  
+      if (response.status === 200) {
+        removeUser(userIdToDelete);
+        alert("User deleted successfully");
+  
+        // Reset the navigation stack to include SettingsScreen and UserManagement
+        navigation.reset({
+          index: 0, 
+          routes: [
+            {
+              name: "Settings", 
+              state: {
+                index: 1,
+                routes: [
+                  { name: "SettingsScreen" }, // The base screen in the nested stack
+                  { name: "UserManagement" }, // The active screen
+                ],
+              },
+            },
+          ],
+        });
+      } else {
+        alert(`Failed to delete user. Status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Failed to delete user. Check your connection.");
     } finally {
       setIsLoading(false);
     }
   };
   
-
 
   return (
     <>
@@ -130,8 +149,15 @@ const SettingsNavigator = () => {
                       setBottomSheetVisible(false);
                         navigation.navigate("EditUser");
                     } else if (option.value === "delete") {
-                      setBottomSheetVisible(false); // Close the bottom sheet
-                      setModalVisible(true);
+                      setBottomSheetVisible(false);
+                      const userId = navigation.getState().routes.find(r => r.name === "UserDetails")?.params?.userId;
+                      if (userId) {
+                        setUserIdToDelete(userId); // Set the user ID to delete
+                        setModalVisible(true); // Open the confirmation modal
+                      } else {
+                        console.error("User ID is missing from route params.");
+                        alert("User ID is missing. Cannot delete.");
+                      }
                     }
                   }}
   
@@ -159,7 +185,7 @@ const SettingsNavigator = () => {
       <ConfirmationModal
         visible={isModalVisible}
         title="Confirm Removal"
-        message="Are you sure you want to remove ${userIdToDelete}? This action cannot be undone."
+        message="Are you sure you want to remove this user? This action cannot be undone."
         onConfirm={handleDeleteUser}
         onCancel={() => setModalVisible(false)}
       />

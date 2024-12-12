@@ -1,17 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ActivityIndicator,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg'; // Importing Svg and Path from react-native-svg
 import axios from 'axios';
 import { useUserContext } from '../../UserContext';
+import { useFocusEffect } from '@react-navigation/native';
 import BottomSheet from '@components/bottomsheets/BottomSheet';
 import ConfirmationModal from '@components/ConfirmationModal';
+
+
 const UserDetails = ({
   route,
   navigation,
@@ -22,43 +26,45 @@ const UserDetails = ({
   const { userDetails, setUserDetails } = useUserContext();
   const [loading, setLoading] = useState(true);
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
+  const { removeUser } = useUserContext();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        console.log('Fetching details for user ID:', userId);
-         const response = await axios.get(`${API_IP}user/${userId}`
-        );
-        // console.log("API Response:", response.data);
-
-        if (response.data && response.data.length > 0) {
-          const user = response.data[0];
-          // const assets = response.data.map(item => ({
-          //   asset_name: item.asset_name,
-          //   asset_type_id: item.asset_type_id,
-          //   location_id: item.location_id,
-          //   asset_created_at: item.asset_created_at,
-          // }));
-
-          console.log(user);
-          // console.log(assets);
-          setUserDetails(user);
-        } else {
-          console.error('User details not found');
-        }
-      } catch (error) {
-        console.error('Error fetching user details:', error);
-      } finally {
-        setLoading(false);
+  // Function to fetch user details
+  const fetchUserDetails = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log("Fetching details for userId:", userId);
+      const response = await axios.get(`${API_IP}user/${userId}`);
+      console.log("API Response:", response.data);
+  
+      if (response.data && response.data.length > 0) {
+        setUserDetails(response.data[0]);
+      } else {
+        console.error('No user details found for userId:', userId);
+        setUserDetails(null); // Show a fallback on the current screen
       }
-    };
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.error("User not found. Staying on the current screen.");
+        setUserDetails(null); // Handle gracefully instead of navigating
+      } else {
 
-    if (userId) {
-      fetchUserDetails();
+        console.error('Error fetching user details:', error);
+      }
+    } finally {
+      setLoading(false);
     }
   }, [userId, navigation]);
+
+  // Fetch user details when the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserDetails();
+    }, [fetchUserDetails])
+  );
+  
+ 
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -71,7 +77,14 @@ const UserDetails = ({
   return (
     <View style={styles.container}>
       <View style={styles.userInfo}>
-        <View style={styles.Image}></View>
+        <Image
+          style={styles.Image}
+          source={
+            userDetails.image
+              ? { uri: userDetails.image } // Use the user's image if available
+              : require('../../../frontend/assets/images/user_icon.jpg') // Fallback to default image
+          }
+        />
         <View style={styles.Info}>
           <Text style={styles.name}>{userDetails.username}</Text>
           <Text style={styles.email}>{userDetails.email}</Text>
@@ -117,7 +130,7 @@ const UserDetails = ({
         </View>
         <View style={styles.detail}>
           <Text style={styles.title}>Phone Number</Text>
-          <Text style={styles.details}>+1-234-567-8900</Text>
+          <Text style={styles.details}>{userDetails.phone_number}</Text>
         </View>
       </View>
 
@@ -140,10 +153,7 @@ const UserDetails = ({
         </View>
         <View style={styles.detail}>
           <Text style={styles.title}>User Summary</Text>
-          <Text style={styles.details}>
-            Energy Manager responsible for monitoring and optimizing resource
-            consumption across Green Tower HQ and Logistics Center
-          </Text>
+          <Text style={styles.details}>{userDetails.user_summary}</Text>
         </View>
       </View>
 
@@ -175,9 +185,12 @@ const UserDetails = ({
         </View>
         <View style={styles.detail}>
           <Text style={styles.title}>Last Active</Text>
-          <Text style={styles.details}>November 12,2024, 8:45 AM (UTC)</Text>
+          <Text style={styles.details}>{userDetails.last_active}</Text>
         </View>
       </View>
+      
+      
+
     </View>
   );
 };
