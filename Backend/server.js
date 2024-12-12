@@ -11,53 +11,60 @@ const app = express();
 app.use(express.json());
 
 // Variables
-let pool;
-const ssh = new NodeSSH();
+// let pool;
+// const ssh = new NodeSSH();
 
-console.log('Using database:', process.env.DB_NAME);
+// console.log('Using database:', process.env.DB_NAME);
 
-async function initializeSSH() {
-  try {
-    console.log('Establishing SSH connection...');
-    await ssh.connect({
-      host: process.env.SSH_HOST,
-      port: parseInt(process.env.SSH_PORT, 10),
-      username: process.env.SSH_USER,
-      password: process.env.SSH_PASSWORD,
-    });
-    console.log('SSH connection successful!');
+// async function initializeSSH() {
+//   try {
+//     console.log('Establishing SSH connection...');
+//     await ssh.connect({
+//       host: process.env.SSH_HOST,
+//       port: parseInt(process.env.SSH_PORT, 10),
+//       username: process.env.SSH_USER,
+//       password: process.env.SSH_PASSWORD,
+//     });
+//     console.log('SSH connection successful!');
 
-    console.log('Forwarding port 3307...');
-    await ssh.forwardIn('127.0.0.1', 3307); // Local port forwarded to remote MySQL port
-    console.log('Port forwarding successful!');
-  } catch (error) {
-    console.error('SSH connection error:', error);
-    process.exit(1); // Stop the app if SSH fails
-  }
-}
+//     console.log('Forwarding port 3307...');
+//     await ssh.forwardIn('127.0.0.1', 3307); // Local port forwarded to remote MySQL port
+//     console.log('Port forwarding successful!');
+//   } catch (error) {
+//     console.error('SSH connection error:', error);
+//     process.exit(1); // Stop the app if SSH fails
+//   }
+// }
 
-async function initializeMySQL() {
-  try {
-    console.log('Creating MySQL pool...');
-    pool = mysql.createPool({
-      host: process.env.DB_HOST, // MySQL is forwarded to localhost via SSH
-      port: process.env.DB_PORT, // Local forwarded port
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      waitForConnections: true,
-    });
-    console.log('MySQL pool created!');
-  } catch (error) {
-    console.error('Failed to initialize MySQL:', error);
-    process.exit(1); // Exit the process if initialization fails
-  }
-}
+// async function initializeMySQL() {
+//   try {
+//     console.log('Creating MySQL pool...');
+//     pool = mysql.createPool({
+//       host: process.env.DB_HOST, // MySQL is forwarded to localhost via SSH
+//       port: process.env.DB_PORT, // Local forwarded port
+//       user: process.env.DB_USER,
+//       password: process.env.DB_PASSWORD,
+//       database: process.env.DB_NAME,
+//       waitForConnections: true,
+//     });
+//     console.log('MySQL pool created!');
+//   } catch (error) {
+//     console.error('Failed to initialize MySQL:', error);
+//     process.exit(1); // Exit the process if initialization fails
+//   }
+// }
 
-async function initialize() {
-  await initializeSSH(); // Initialize SSH first
-  await initializeMySQL(); // Then initialize MySQL
-}
+// async function initialize() {
+//   await initializeSSH(); // Initialize SSH first
+//   await initializeMySQL(); // Then initialize MySQL
+// }
+
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+});
 
 // API endpoint to see the assets
 app.get('/api/assets', async (req, res) => {
@@ -978,10 +985,14 @@ app.post('/user', async (req, res) => {
 });
 
 // Call initialize before starting the server
-initialize().then(() => {
-  // Start the Express server
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+// initialize().then(() => {
+//   // Start the Express server
+//   const PORT = process.env.PORT || 3000;
+//   app.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`);
+//   });
+// });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

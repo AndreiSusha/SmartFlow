@@ -10,41 +10,16 @@ import { useIsFocused } from '@react-navigation/native';
 import MonthDropdown from '../components/MonthDropdown';
 import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
+import Constants from 'expo-constants';
+
+const API_URL = `${Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL}/api/measurements/last-calendar-month`;
 
 const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(null);
-
-  const [chartData, setChartData] = useState([
-    {
-      percentage: 55,
-      color: '#53B6C7',
-      radius: 70,
-      strokeWidth: 15,
-      label: 'Electricity',
-    },
-    {
-      percentage: 75,
-      color: '#337EFF',
-      radius: 70,
-      strokeWidth: 15,
-      label: 'Water',
-    },
-    {
-      percentage: 35,
-      color: '#A0C287',
-      radius: 70,
-      strokeWidth: 15,
-      label: 'Waste Disposal',
-    },
-  ]);
-
-  // API functionality
-  //   const [chartData, setChartData] = useState([]);
-  //   useEffect(() => {
-  //   fetchDataFromAPI().then(data => setChartData(data));
-  // }, []);
+  const [chartData, setChartData] = useState([]);
+  const [reportCards, setReportCards] = useState([]);
 
   useEffect(() => {
     if (isFocused) {
@@ -54,27 +29,85 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [isFocused]);
 
-  const reportCards = [
-    { title: 'Electricity', value: '200 kWh' },
-    { title: 'Water', value: '1500 L' },
-    { title: 'Waste', value: '80 kg' },
-    { title: 'Internet', value: '300 GB' },
-  ];
+  useEffect(() => {
+    if (selectedMonth) {
+      fetchMeasurements(selectedMonth);
+    }
+  }, [selectedMonth]);
+
+  const fetchMeasurements = async (month) => {
+    try {
+      const response = await fetch(`${API_URL}?month=${month}`);
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const chartFormat = [
+        {
+          percentage: calculatePercentage(data.temperature),
+          color: '#53B6C7',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'Temperature',
+        },
+        {
+          percentage: calculatePercentage(data.co2),
+          color: '#337EFF',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'CO2',
+        },
+        {
+          percentage: calculatePercentage(data.humidity),
+          color: '#A0C287',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'Humidity',
+        },
+      ];
+
+      const reportFormat = [
+        {
+          title: 'Temperature',
+          value: `${data.temperature?.max || 0} ${
+            data.temperature?.unit || ''
+          }`,
+        },
+        {
+          title: 'CO2',
+          value: `${data.co2?.total || 0} ${data.co2?.unit || ''}`,
+        },
+        {
+          title: 'Humidity',
+          value: `${data.humidity?.max || 0} ${data.humidity?.unit || ''}`,
+        },
+        { title: 'Electricity', value: 'Data unavailable' }, // Placeholder
+      ];
+
+      setChartData(chartFormat);
+      setReportCards(reportFormat);
+    } catch (error) {
+      console.error('Error fetching measurements:', error);
+    }
+  };
+
+  const calculatePercentage = (data) => {
+    if (!data || !data.max || !data.total) return 0;
+    return Math.min((data.max / data.total) * 100, 100);
+  };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Title */}
       <Text style={styles.title}>Consumption Overview</Text>
 
-      {/* Donut Chart */}
       <View style={styles.chartContainer}>
-        {/* Month Dropdown */}
         <MonthDropdown
           selectedMonth={selectedMonth}
           setSelectedMonth={setSelectedMonth}
         />
         <View style={styles.rowContainer}>
-          {/* Donut Charts, styles donutChartContainer if needed */}
           <View>
             {chartData.slice(0, 2).map((item, index) => (
               <DonutChart
@@ -89,15 +122,14 @@ const HomeScreen = ({ navigation }) => {
           </View>
           <View style={styles.chartCorner}>
             <DonutChart
-              percentage={chartData[2].percentage}
-              color={chartData[2].color}
-              radius={chartData[2].radius}
-              strokeWidth={chartData[2].strokeWidth}
+              percentage={chartData[2]?.percentage || 0}
+              color={chartData[2]?.color || '#ccc'}
+              radius={chartData[2]?.radius || 70}
+              strokeWidth={chartData[2]?.strokeWidth || 15}
               animate={shouldAnimate}
             />
           </View>
 
-          {/* Legend */}
           <View style={styles.legendContainer}>
             {chartData.map((item, index) => (
               <View key={index} style={styles.legendItem}>
@@ -111,7 +143,6 @@ const HomeScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Reports */}
       <View style={styles.subtitleRow}>
         <Text style={styles.subtitle}>Monthly reports</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
@@ -119,7 +150,6 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Report Cards */}
       <View style={styles.cardGrid}>
         {reportCards.map((report, index) => (
           <ReportCard
@@ -178,10 +208,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  // donutChartContainer: {
-  //   flexDirection: 'column',
-  //   alignItems: 'flex-start',
-  // },
   legendContainer: {
     position: 'absolute',
     bottom: 16,
