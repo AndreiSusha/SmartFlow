@@ -1,4 +1,3 @@
-
 import express from 'express'; // Use `import` for ES modules
 import dotenv from 'dotenv'; // Use `import` for dotenv
 import mysql from 'mysql2/promise'; // Use mysql2's `promise` import
@@ -37,8 +36,6 @@ const authenticateJWT = (req, res, next) => {
     next();
   });
 };
-
-
 
 // Variables
 // let pool;
@@ -84,7 +81,6 @@ const authenticateJWT = (req, res, next) => {
 //   }
 // }
 
-
 // async function initialize() {
 //   //await initializeSSH(); // Initialize SSH first
 //   await initializeMySQL(); // Then initialize MySQL
@@ -120,10 +116,8 @@ const authenticateJWT = (req, res, next) => {
   });
 
 
-  
-
- // API endpoint to see the assets
- app.get('/api/assets', async (req, res) => {
+// API endpoint to see the assets
+app.get('/api/assets', async (req, res) => {
   const query = `
     SELECT 
       l.id AS location_id,
@@ -141,7 +135,7 @@ const authenticateJWT = (req, res, next) => {
   try {
     const [results] = await pool.query(query); // Execute the query
 
-    const formattedResults = results.map(row => ({
+    const formattedResults = results.map((row) => ({
       location: {
         id: row.location_id,
         name: `${row.country}, ${row.city}`, // Format country and city
@@ -159,8 +153,6 @@ const authenticateJWT = (req, res, next) => {
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
-
-
 
 // API endpoint for the asset type
 app.get('/api/asset-types', async (req, res) => {
@@ -182,14 +174,8 @@ app.get('/api/asset-types', async (req, res) => {
 app.post('/api/add-new-asset', async (req, res) => {
   const {
     assetName,
-    assetTypeName, 
-    location: {
-      country,
-      city,
-      address,
-      zipCode,
-      additionalInformation
-    }
+    assetTypeName,
+    location: { country, city, address, zipCode, additionalInformation },
   } = req.body;
 
   // Validate required fields
@@ -207,7 +193,9 @@ app.post('/api/add-new-asset', async (req, res) => {
     const assetTypeQuery = `
       SELECT id FROM asset_types WHERE type_name = ?
     `;
-    const [assetTypeResult] = await connection.query(assetTypeQuery, [assetTypeName]);
+    const [assetTypeResult] = await connection.query(assetTypeQuery, [
+      assetTypeName,
+    ]);
 
     if (assetTypeResult.length === 0) {
       throw new Error(`Asset type '${assetTypeName}' not found`);
@@ -225,7 +213,7 @@ app.post('/api/add-new-asset', async (req, res) => {
       city,
       address || null, // Allow null values for optional fields
       zipCode || null,
-      additionalInformation || null
+      additionalInformation || null,
     ]);
 
     const newLocationId = locationResult.insertId; // Get the ID of the inserted location
@@ -238,7 +226,7 @@ app.post('/api/add-new-asset', async (req, res) => {
     const [assetResult] = await connection.query(assetQuery, [
       assetName,
       assetTypeId,
-      newLocationId
+      newLocationId,
     ]);
 
     // Commit the transaction
@@ -247,7 +235,7 @@ app.post('/api/add-new-asset', async (req, res) => {
     res.status(201).json({
       message: 'Asset and location added successfully',
       assetId: assetResult.insertId,
-      locationId: newLocationId
+      locationId: newLocationId,
     });
   } catch (err) {
     // Rollback the transaction in case of an error
@@ -259,8 +247,7 @@ app.post('/api/add-new-asset', async (req, res) => {
   }
 });
 
-
-// API endpoint for assset details 
+// API endpoint for assset details
 app.get('/api/asset-details/:id', async (req, res) => {
   const assetId = req.params.id;
 
@@ -303,14 +290,13 @@ app.get('/api/asset-details/:id', async (req, res) => {
     // Combine asset details and user list
     res.json({
       ...assetDetails,
-      users: userResults
+      users: userResults,
     });
   } catch (err) {
     console.error('Error fetching asset details and users:', err);
     res.status(500).json({ error: 'Failed to fetch asset details and users' });
   }
 });
-
 
 // API endpoint to see user details based on ID
 app.get('/api/users/:id', async (req, res) => {
@@ -345,7 +331,6 @@ app.get('/api/users/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch user details' });
   }
 });
-
 
 // API endpoint to edit asset details
 app.put('/api/asset/:id', async (req, res) => {
@@ -388,10 +373,15 @@ app.put('/api/asset/:id', async (req, res) => {
         WHERE id = (SELECT location_id FROM assets WHERE id = ?)
       `;
       locationValues.push(assetId); // Use `asset_id` to find the associated location
-      const [locationResult] = await connection.query(locationQuery, locationValues);
+      const [locationResult] = await connection.query(
+        locationQuery,
+        locationValues
+      );
 
       if (locationResult.affectedRows === 0) {
-        console.warn('No associated location found for the given asset. Skipping location update.');
+        console.warn(
+          'No associated location found for the given asset. Skipping location update.'
+        );
       }
     }
 
@@ -413,18 +403,18 @@ app.put('/api/asset/:id', async (req, res) => {
     // Commit the transaction
     await connection.commit();
     res.json({ message: 'Asset details updated successfully' });
-
   } catch (err) {
     if (connection) await connection.rollback(); // Rollback transaction in case of error
     console.error('Error updating asset details:', err);
-    res.status(500).json({ error: 'Failed to update asset details', details: err.message });
+    res
+      .status(500)
+      .json({ error: 'Failed to update asset details', details: err.message });
   } finally {
     if (connection) {
       connection.release(); // Release the database connection
     }
   }
 });
-
 
 // API endpoint to delete an asset
 app.delete('/api/assets/:id', async (req, res) => {
@@ -471,7 +461,6 @@ app.delete('/api/assets/:id', async (req, res) => {
     connection.release(); // Release the database connection
   }
 });
-
 
 //// API endpoint for measurements
 app.get('/api/measurements', async (req, res) => {
@@ -532,7 +521,6 @@ app.get('/api/measurements', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch measurements' });
   }
 });
-
 
 // API Endpoint to display data from measurements type tables
 app.get('/api/measurement-report', async (req, res) => {
@@ -748,8 +736,75 @@ app.get('/api/measurement-report', async (req, res) => {
   }
 });
 
+// API endpoint for retrieving monthly measurements
+app.get('/api/measurements/last-calendar-month', async (req, res) => {
+  const queries = {
+    temperature: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM temperature_measurements
+      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
+        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+    `,
+    co2: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM co2_measurements
+      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
+        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+    `,
+    vdd: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM vdd_measurements
+      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
+        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+    `,
+    humidity: `
+      SELECT 
+        id,
+        timestamp AS time,
+        value AS value,
+        unit AS unit
+      FROM humidity_measurements
+      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
+        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+    `,
+  };
 
+  try {
+    const temperaturePromise = pool.query(queries.temperature);
+    const co2Promise = pool.query(queries.co2);
+    const vddPromise = pool.query(queries.vdd);
+    const humidityPromise = pool.query(queries.humidity);
 
+    const [temperatureResults] = await temperaturePromise;
+    const [co2Results] = await co2Promise;
+    const [vddResults] = await vddPromise;
+    const [humidityResults] = await humidityPromise;
+
+    res.json({
+      temperature: temperatureResults,
+      co2: co2Results,
+      vdd: vddResults,
+      humidity: humidityResults,
+    });
+  } catch (err) {
+    console.error('Error fetching measurements for last calendar month:', err);
+    res
+      .status(500)
+      .json({ error: 'Failed to fetch measurements for last calendar month' });
+  }
+});
 
 app.get('/users/:customer_id', async (req, res) => {
   const customerId = req.params.customer_id;
@@ -780,8 +835,6 @@ app.get('/users/:customer_id', async (req, res) => {
   }
 });
 
-
-
 // Fetch a single user by their id
 app.get('/user/:id', async (req, res) => {
   const userId = req.params.id;
@@ -811,7 +864,6 @@ app.get('/user/:id', async (req, res) => {
     res.status(500).send('Error fetching user and assets');
   }
 });
-
 
 // Update a user by ID
 app.put('/user/:id', async (req, res) => {
@@ -935,7 +987,9 @@ app.delete('/user/:id', async (req, res) => {
     await pool.query('DELETE FROM user_assets WHERE user_id = ?', [userId]);
 
     // Then delete the user
-    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [
+      userId,
+    ]);
 
     if (result.affectedRows === 0) {
       return res.status(404).send('User not found');
@@ -948,14 +1002,17 @@ app.delete('/user/:id', async (req, res) => {
   }
 });
 
-
 // Add a new user
 app.post('/user', async (req, res) => {
   const { username, email, password_hash, role_id, customer_id } = req.body;
 
   // Validate input
   if (!username || !email || !password_hash || !role_id || !customer_id) {
-    return res.status(400).send('All fields are required: username, email, password_hash, role_id, customer_id');
+    return res
+      .status(400)
+      .send(
+        'All fields are required: username, email, password_hash, role_id, customer_id'
+      );
   }
 
   try {
@@ -966,7 +1023,9 @@ app.post('/user', async (req, res) => {
     );
 
     // Respond with the ID of the newly created user
-    res.status(201).json({ message: 'User created successfully', userId: result.insertId });
+    res
+      .status(201)
+      .json({ message: 'User created successfully', userId: result.insertId });
   } catch (error) {
     console.error('Error creating user:', error);
 
@@ -979,14 +1038,6 @@ app.post('/user', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-
-
-// // Call initialize before starting the server
 // initialize().then(() => {
 //   // Start the Express server
 //   const PORT = process.env.PORT || 3000;
@@ -994,3 +1045,8 @@ app.listen(PORT, () => {
 //     console.log(`Server running on port ${PORT}`);
 //   });
 // });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
