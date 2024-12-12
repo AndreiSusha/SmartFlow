@@ -10,18 +10,78 @@ import { useIsFocused } from '@react-navigation/native';
 import MonthDropdown from '../components/MonthDropdown';
 import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
-import Constants from 'expo-constants';
-
-// const API_URL = `${Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL}/api/measurements/last-calendar-month`;
-const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [chartData, setChartData] = useState([]);
-  const [reportCards, setReportCards] = useState([]);
 
+  // Fetch data from API
+  const fetchDataFromAPI = async (month) => {
+    try {
+      console.log('Selected month:', month);
+      const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+      const response = await fetch(
+        `${API_IP}/measurements/last-calendar-month?month=${month}` // Исправлено: добавлен "="
+      );
+      console.log(
+        'Fetching URL:',
+        `${API_IP}/measurements/last-calendar-month?month=${month}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Format data for Donut Charts
+      const formattedData = [
+        {
+          percentage: data.temperature[0]?.total_value || 0,
+          color: '#53B6C7',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'Temperature',
+        },
+        {
+          percentage: data.co2[0]?.total_value || 0,
+          color: '#337EFF',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'CO2',
+        },
+        {
+          percentage: data.vdd[0]?.total_value || 0,
+          color: '#A0C287',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'VDD',
+        },
+        {
+          percentage: data.humidity[0]?.total_value || 0,
+          color: '#FF6F61',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'Humidity',
+        },
+      ];
+
+      setChartData(formattedData);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    }
+  };
+
+  // Fetch data from API when selectedMonth changes
+  useEffect(() => {
+    if (selectedMonth) {
+      fetchDataFromAPI(selectedMonth);
+    }
+  }, [selectedMonth]);
+
+  // Animate Donut Charts when screen is focused
   useEffect(() => {
     if (isFocused) {
       setShouldAnimate(true);
@@ -30,87 +90,23 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [isFocused]);
 
-  useEffect(() => {
-    if (selectedMonth) {
-      fetchMeasurements(selectedMonth);
-    }
-  }, [selectedMonth]);
-
-  const fetchMeasurements = async (month) => {
-    try {
-      const response = await fetch(
-        `${API_IP}api/measurements/last-calendar-month?month=${month}`
-      );
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      const chartFormat = [
-        {
-          percentage: calculatePercentage(data.temperature),
-          color: '#53B6C7',
-          radius: 70,
-          strokeWidth: 15,
-          label: 'Temperature',
-        },
-        {
-          percentage: calculatePercentage(data.co2),
-          color: '#337EFF',
-          radius: 70,
-          strokeWidth: 15,
-          label: 'CO2',
-        },
-        {
-          percentage: calculatePercentage(data.humidity),
-          color: '#A0C287',
-          radius: 70,
-          strokeWidth: 15,
-          label: 'Humidity',
-        },
-      ];
-
-      const reportFormat = [
-        {
-          title: 'Temperature',
-          value: `${data.temperature?.max || 0} ${
-            data.temperature?.unit || ''
-          }`,
-        },
-        {
-          title: 'CO2',
-          value: `${data.co2?.total || 0} ${data.co2?.unit || ''}`,
-        },
-        {
-          title: 'Humidity',
-          value: `${data.humidity?.max || 0} ${data.humidity?.unit || ''}`,
-        },
-        { title: 'Electricity', value: 'Data unavailable' }, // Placeholder
-      ];
-
-      setChartData(chartFormat);
-      setReportCards(reportFormat);
-    } catch (error) {
-      console.error('Error fetching measurements:', error);
-    }
-  };
-
-  const calculatePercentage = (data) => {
-    if (!data || !data.max || !data.total) return 0;
-    return Math.min((data.max / data.total) * 100, 100);
-  };
-
   return (
     <ScrollView style={styles.container}>
+      {/* Title */}
       <Text style={styles.title}>Consumption Overview</Text>
 
+      {/* Donut Chart */}
       <View style={styles.chartContainer}>
+        {/* Month Dropdown */}
         <MonthDropdown
           selectedMonth={selectedMonth}
-          setSelectedMonth={setSelectedMonth}
+          setSelectedMonth={(month) => {
+            console.log('Month selected from dropdown:', month);
+            setSelectedMonth;
+          }}
         />
         <View style={styles.rowContainer}>
+          {/* Donut Charts */}
           <View>
             {chartData.slice(0, 2).map((item, index) => (
               <DonutChart
@@ -124,28 +120,33 @@ const HomeScreen = ({ navigation }) => {
             ))}
           </View>
           <View style={styles.chartCorner}>
-            <DonutChart
-              percentage={chartData[2]?.percentage || 0}
-              color={chartData[2]?.color || '#ccc'}
-              radius={chartData[2]?.radius || 70}
-              strokeWidth={chartData[2]?.strokeWidth || 15}
-              animate={shouldAnimate}
-            />
-          </View>
-
-          <View style={styles.legendContainer}>
-            {chartData.map((item, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View
-                  style={[styles.colorBox, { backgroundColor: item.color }]}
-                />
-                <Text style={styles.legendText}>{item.label}</Text>
-              </View>
+            {chartData.slice(2).map((item, index) => (
+              <DonutChart
+                key={index}
+                percentage={item.percentage}
+                color={item.color}
+                radius={item.radius}
+                strokeWidth={item.strokeWidth}
+                animate={shouldAnimate}
+              />
             ))}
           </View>
         </View>
+
+        {/* Legend */}
+        <View style={styles.legendContainer}>
+          {chartData.map((item, index) => (
+            <View key={index} style={styles.legendItem}>
+              <View
+                style={[styles.colorBox, { backgroundColor: item.color }]}
+              />
+              <Text style={styles.legendText}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
+      {/* Reports */}
       <View style={styles.subtitleRow}>
         <Text style={styles.subtitle}>Monthly reports</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
@@ -153,16 +154,17 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Report Cards */}
       <View style={styles.cardGrid}>
-        {reportCards.map((report, index) => (
+        {chartData.map((report, index) => (
           <ReportCard
             key={index}
-            title={report.title}
-            value={report.value}
+            title={report.label}
+            value={`${report.percentage} units`}
             onPress={() =>
               navigation.navigate('Reports', {
                 screen: 'Report',
-                params: { reportTitle: report.title },
+                params: { reportTitle: report.label },
               })
             }
           />
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    marginTop: 20,
+    marginTop: 60,
   },
   title: {
     fontSize: 22,
