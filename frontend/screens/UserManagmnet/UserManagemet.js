@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,39 +6,47 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
-} from "react-native";
-import axios from "axios";
-import { UserCard } from "../../components/userManagmnet/UserCard";
-import { useNavigation } from "@react-navigation/native";
+
+} from 'react-native';
+import axios from 'axios';
+import { UserCard } from '../../components/userManagmnet/UserCard';
+import { useAuthStore } from '../../stores/authStore';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]); // State for users
   const [loading, setLoading] = useState(true); // State for loading
   const [search, setSearch] = useState(""); // State for search
   const navigation = useNavigation();
+  const {  user } = useAuthStore();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get(`${API_IP}/users/3`);
-        //const response = await axios.get('http://192.168.0.103:3000/users/3');
+  
+   // Function to fetch users
+   const fetchUsers = useCallback(async () => {
+    try {
+      setLoading(true); // Start loading
+      const response = await axios.get(`${API_IP}users/${user.customer}`);
+      // Filter users with role_id 2
+      const filteredUsers = response.data.filter(
+        (user) => user.role_id === 2
+      );
+      setUsers(filteredUsers); // Update state with filtered users
+    } catch (error) {
+      console.error('Error fetching users:', error); // Log any errors
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  }, [API_IP]);
 
-        // Filter users with role_id 2
-        const filteredUsers = response.data.filter(
-          (user) => user.role_id === 2
-        );
+  // Refresh the user list when the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      fetchUsers();
+    }, [fetchUsers])
+  );
 
-        setUsers(filteredUsers); // Update state with filtered users
-      } catch (error) {
-        console.error("Error fetching users:", error); // Log any errors
-      } finally {
-        setLoading(false); // Stop loading
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   // Filter users for search (by username)
   const filteredUsers = users.filter((user) =>

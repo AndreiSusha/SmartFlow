@@ -5,7 +5,7 @@ export const getAssetMeasurements = async (assetId) => {
     throw new Error("Asset ID is required for fetching measurements.");
   }
 
-  const endpoint = `/api/assets/${assetId}/measurements`;
+  const endpoint = `api/assets/${assetId}/measurements`;
 
   try {
     const { data } = await api.get(endpoint);
@@ -27,10 +27,10 @@ export const getReportDetails = async (assetId, measurementTable, period) => {
     throw new Error("Period is required for fetching measurements.");
   }
 
-  const endpoint = "/measurements";
+  const endpoint = "measurements";
 
   const fullURL = `${process.env.EXPO_PUBLIC_API_BASE_URL}${endpoint}`;
-  console.log(`Fetching asset types from: ${fullURL}`); // Log the URL
+  console.log(`Fetching asset types from: ${fullURL}`); 
   console.log(`assetId: ${assetId}, measurementTable: ${measurementTable}, period: ${period}`);
 
   try {

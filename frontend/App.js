@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useEffect} from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator } from "react-native";
@@ -12,10 +12,17 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./api/QueryClient";
 
 
+
+
 const App = () => {
   const [fontsLoaded] = useFonts(customFonts);
 
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, loadAuthState  } = useAuthStore();
+
+  useEffect(() => {
+    // Load authentication state when app starts
+    loadAuthState();
+  }, []);
 
   if (!fontsLoaded) {
     return (

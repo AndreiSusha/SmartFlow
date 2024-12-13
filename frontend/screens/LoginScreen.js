@@ -2,30 +2,37 @@ import {
   StyleSheet,
   Text,
   View,
-  TextInput,
   TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import BackButton from "../components/BackButton";
 import { useAuthStore } from "../stores/authStore";
 import Button from "@components/Button";
 import Input from "@components/Input";
+import { ActivityIndicator } from "react-native"; // Add this import statement
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const login = useAuthStore((state) => state.login);
+  const navigation = useNavigation();
+  const { loading } = useAuthStore();
 
-  const handleLogin = () => {
-    // Login logic here
-    console.log("Logging in with:", email, password);
-    // Redirect to main screen
-    login();
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Please fill in both fields");
+      return;
+    }
+
+    try {
+      await useAuthStore.getState().login(email, password);
+      navigation.navigate("Home");
+    } catch (error) {
+      console.error(error);
+      alert("Login failed. Please try again.");
+    }
   };
   const handleForgotPassword = () => {
     console.log("Forgot password clicked");
-    // Logic to handle forgot password
   };
 
   return (
@@ -56,7 +63,9 @@ const LoginScreen = () => {
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
       </TouchableOpacity>
       {/* Login button */}
-      <Button onPress={handleLogin}>Login</Button>
+      <Button onPress={handleLogin}>
+        {loading ? <ActivityIndicator color="#fff" /> : "Login"}
+      </Button>
     </View>
   );
 };
