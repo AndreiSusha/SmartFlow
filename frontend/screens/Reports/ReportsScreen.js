@@ -44,6 +44,7 @@ const ReportsScreen = () => {
               navigation.navigate("Report", {
                 measurementType: item.measurement_type,
                 unit: item.unit,
+                aggrType: item.aggr_type,
               })
             }
           />

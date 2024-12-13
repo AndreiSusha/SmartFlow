@@ -15,6 +15,8 @@ const ReportsNavigator = () => {
             headerTitle: "Insights & Reports",
             headerTintColor: "#53B6C7",
             headerLeft: () => null,
+            headerTitleAlign: "center",
+
           }}
         />
         <Stack.Screen name="Report" component={ReportDetails} />

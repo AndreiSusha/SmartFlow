@@ -17,18 +17,19 @@ const REPORT_COMPONENTS = {
   light_measurements: LightReport,
   temperature_measurements: TemperatureReport,
   vdd_measurements: VddReport,
-  electricity_measurements: ElectricityReport,
 };
 
 const ReportDetails = ({ route }) => {
   const navigation = useNavigation();
-  const { measurementType, unit } = route.params;
+  const { measurementType, unit, aggrType } = route.params;
+
+  console.log("aggrType: ", aggrType);
 
   const [period, setPeriod] = useState("last_week");
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["ReportDetails", measurementType, period],
-    queryFn: () => getReportDetails(3, measurementType, period),
+    queryFn: () => getReportDetails(3, measurementType, period, aggrType),
     enabled: !!measurementType,
   });
 
@@ -47,20 +48,20 @@ const ReportDetails = ({ route }) => {
     if (period === "last_week") {
       weekly_data = data.map((item) => ({
         date: new Date(item.date).getTime(),
-        kWh: item.averageValue,
+        value: item.averageValue,
         cost: item.averageValue * 0.2,
       }));
     } else if (period === "last_3_months") {
       monthly_data = data.map((item) => ({
         date: new Date(item.date).getTime(),
-        kWh: item.averageValue || 0,
+        value: item.averageValue || 0,
         cost: (item.averageValue || 0) * 0.2,
       }));
       console.log("monthly_data: ", monthly_data);
     } else if (period === "past_year") {
       yearly_data = data.map((item) => ({
         date: new Date(item.monthLabel).getTime(),
-        kWh: item.averageValue || 0,
+        value: item.averageValue || 0,
         cost: (item.averageValue || 0) * 0.2,
       }));
       console.log("yearly_data: ", yearly_data);
@@ -96,6 +97,7 @@ const ReportDetails = ({ route }) => {
       period={period}
       setPeriod={setPeriod}
       unit={unit}
+      aggrType={aggrType}
     />
   );
 };

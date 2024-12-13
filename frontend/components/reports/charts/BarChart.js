@@ -15,7 +15,8 @@ const BarChart = ({
   yearly_data,
   period,
   setPeriod,
-  unitName
+  unitName,
+  aggrType,
 }) => {
   const [unit, setUnit] = useState(unitName);
 
@@ -67,9 +68,12 @@ const BarChart = ({
     tickValues = data.map((d) => d[xKey]);
   }
 
-  const yKey = unit === "kWh" ? "kWh" : "cost";
+  const yKey = unit === unitName ? "value" : "cost";
+
   const formatYLabel = (value) =>
-    unit === unitName ? `${value.toFixed(0)}` + unitName : `€${value.toFixed(2)}`;
+    unit === unitName
+      ? `${value.toFixed(0)}${unitName}`
+      : `€${value.toFixed(2)}`;
 
   const activeXItem = useDerivedValue(() => {
     const xValue = state.x.value.value;
@@ -104,6 +108,13 @@ const BarChart = ({
       setDisplayData(null);
     }
   }, [data]);
+
+  const formatNumber = (value) => {
+    if (aggrType === "average") {
+      return value.toFixed(2);
+    }
+    return value.toFixed(0);
+  };
 
   if (!font) {
     return (
@@ -181,7 +192,7 @@ const BarChart = ({
             {getHeaderTitle(safeDisplayData, period, displayIndex !== null)}
           </Text>
           <Text style={styles.headerValue}>
-            {safeDisplayData ? safeDisplayData[yKey].toFixed(2) : "0.00"}{" "}
+            {safeDisplayData ? formatNumber(safeDisplayData[yKey]) : "0.00"}{" "}
             <Text style={styles.headerUnit}>{unit}</Text>
           </Text>
         </View>
@@ -205,14 +216,14 @@ const BarChart = ({
           <TouchableOpacity
             style={[
               styles.switchOption,
-              unit === "Euros" && styles.activeSwitchOption,
+              unit === "€" && styles.activeSwitchOption,
             ]}
-            onPress={() => setUnit("Euros")}
+            onPress={() => setUnit("€")}
           >
             <Text
               style={[
                 styles.switchText,
-                unit === "Euros" && styles.activeSwitchText,
+                unit === "€" && styles.activeSwitchText,
               ]}
             >
               €

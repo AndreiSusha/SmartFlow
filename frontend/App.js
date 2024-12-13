@@ -1,4 +1,4 @@
-import React,{useEffect} from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { View, ActivityIndicator } from "react-native";
@@ -11,22 +11,22 @@ import AppNavigator from "./navigation/AppNavigator";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./api/QueryClient";
 
-
-
-
 const App = () => {
   const [fontsLoaded] = useFonts(customFonts);
-
-  const { isAuthenticated, loadAuthState  } = useAuthStore();
+  const [authLoading, setAuthLoading] = useState(true); 
+  const { isAuthenticated, loadAuthState } = useAuthStore();
 
   useEffect(() => {
-    // Load authentication state when app starts
-    loadAuthState();
-  }, []);
+    const initializeAuth = async () => {
+      await loadAuthState();
+      setAuthLoading(false);
+    };
+    initializeAuth();
+  }, [loadAuthState]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || authLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#53B6C7" />
       </View>
     );
@@ -41,7 +41,6 @@ const App = () => {
           <ToastNotification />
         </UserProvider>
       </QueryClientProvider>
-
     </>
   );
 };

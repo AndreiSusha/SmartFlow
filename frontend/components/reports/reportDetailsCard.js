@@ -42,12 +42,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   cardNumber: {
-    fontSize: 40,
+    fontSize: 25,
     color: "#53B6C7",
     fontWeight: "bold",
   },
   cardUnit: {
-    fontSize: 20,
+    fontSize: 15,
     color: "#53B6C7",
     marginLeft: 5,
     marginBottom: 5,

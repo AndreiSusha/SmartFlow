@@ -16,7 +16,7 @@ export const getAssetMeasurements = async (assetId) => {
   }
 };
 
-export const getReportDetails = async (assetId, measurementTable, period) => {
+export const getReportDetails = async (assetId, measurementTable, period, metricType) => {
   if (!assetId) {
     throw new Error("Asset ID is required for fetching measurements.");
   }
@@ -39,6 +39,7 @@ export const getReportDetails = async (assetId, measurementTable, period) => {
         assetId,
         measurementTable,
         period,
+        metricType
       },
     });
     return data;
