@@ -29,15 +29,7 @@ const AuthNavigator = () => {
           headerLeft: () => null,
         }}
       />
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          headerTitle: 'Home',
-          headerTintColor: '#53B6C7',
-          headerLeft: () => null,
-        }}
-      />
+      <Stack.Screen name="Home" component={HomeScreen} />
     </Stack.Navigator>
   );
 };
