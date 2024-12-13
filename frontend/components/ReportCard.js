@@ -9,17 +9,21 @@ const ReportCard = ({ title, value, onPress }) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.cardContent}>
-        <Text style={styles.value}>
-          <Text style={styles.valueNumber}>{number}</Text>
-          <Text style={styles.valueUnit}> {unit}</Text>
-        </Text>
-        <Text style={styles.title}>{title}</Text>
-        <Icon
-          name="chevron-with-circle-right"
-          size={34}
-          color="#FFFFFF"
-          style={styles.icon}
-        />
+        <View style={styles.valueContainer}>
+          <Text style={styles.value}>
+            <Text style={styles.valueNumber}>{number}</Text>
+            <Text style={styles.valueUnit}> {unit}</Text>
+          </Text>
+        </View>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{title}</Text>
+          <Icon
+            name="chevron-with-circle-right"
+            size={30}
+            color="#FFFFFF"
+            style={styles.icon}
+          />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -28,7 +32,7 @@ const ReportCard = ({ title, value, onPress }) => {
 const styles = StyleSheet.create({
   card: {
     width: 150,
-    height: 95,
+    height: 100,
     backgroundColor: '#53B6C7',
     borderRadius: 10,
     marginBottom: 14,
@@ -42,19 +46,28 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     padding: 12,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    flex: 1,
+  },
+  valueContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    maxWidth: '100%',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 16,
     color: '#E3E3E3',
     fontFamily: 'Inter-SemiBold',
-    marginTop: 8,
   },
   value: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 8,
+    flexWrap: 'wrap',
   },
   valueNumber: {
     fontSize: 22,
@@ -62,14 +75,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
   },
   valueUnit: {
-    fontSize: 10,
+    fontSize: 16,
     color: '#FFFFFF',
     fontFamily: 'Inter-SemiBold',
   },
   icon: {
-    position: 'absolute',
-    right: 8,
-    bottom: 3,
+    marginRight: -4,
   },
 });
 
