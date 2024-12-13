@@ -10,112 +10,141 @@ import { useIsFocused } from '@react-navigation/native';
 import MonthDropdown from '../components/MonthDropdown';
 import ReportCard from '../components/ReportCard';
 import DonutChart from '../components/reports/charts/DonutChart';
-import Constants from 'expo-constants';
 
-// const API_URL = `${Constants.expoConfig.extra.EXPO_PUBLIC_API_BASE_URL}/api/measurements/last-calendar-month`;
-const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+const formatValue = (value, unit) => {
+  const numValue = parseFloat(value);
+
+  switch (unit) {
+    case 'V':
+      return {
+        display: `${(numValue / 1000000).toFixed(0)} MV`,
+        numeric: numValue / 1000000,
+      };
+    case '°C':
+      return {
+        display: `${numValue.toFixed(0)} °C`,
+        numeric: numValue,
+      };
+    case 'ppm':
+      return {
+        display: `${numValue.toFixed(0)} ppm`,
+        numeric: numValue,
+      };
+    case '%':
+      return {
+        display: `${numValue.toFixed(0)} %`,
+        numeric: numValue,
+      };
+    default:
+      return {
+        display: value,
+        numeric: numValue,
+      };
+  }
+};
 
 const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
   const [shouldAnimate, setShouldAnimate] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(1);
   const [chartData, setChartData] = useState([]);
-  const [reportCards, setReportCards] = useState([]);
 
-  useEffect(() => {
-    if (isFocused) {
-      setShouldAnimate(true);
-    } else {
-      setShouldAnimate(false);
-    }
-  }, [isFocused]);
-
-  useEffect(() => {
-    if (selectedMonth) {
-      fetchMeasurements(selectedMonth);
-    }
-  }, [selectedMonth]);
-
-  const fetchMeasurements = async (month) => {
+  const fetchDataFromAPI = async (month) => {
     try {
-      const response = await fetch(
-        `${API_IP}api/measurements/last-calendar-month?month=${month}`
-      );
+      const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+      const apiUrl = `${API_IP}api/measurements/last-calendar-month?month=${month}`;
+
+      const response = await fetch(apiUrl);
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      console.log('Raw Response from API:', text);
 
-      const chartFormat = [
+      const data = JSON.parse(text);
+
+      const formattedData = [
         {
-          percentage: calculatePercentage(data.temperature),
+          ...formatValue(
+            data.temperature[0]?.total_value || 0,
+            data.temperature[0]?.unit || ''
+          ),
           color: '#53B6C7',
           radius: 70,
           strokeWidth: 15,
           label: 'Temperature',
         },
         {
-          percentage: calculatePercentage(data.co2),
+          ...formatValue(
+            data.co2[0]?.total_value || 0,
+            data.co2[0]?.unit || ''
+          ),
           color: '#337EFF',
           radius: 70,
           strokeWidth: 15,
           label: 'CO2',
         },
         {
-          percentage: calculatePercentage(data.humidity),
+          ...formatValue(
+            data.vdd[0]?.total_value || 0,
+            data.vdd[0]?.unit || ''
+          ),
           color: '#A0C287',
+          radius: 70,
+          strokeWidth: 15,
+          label: 'VDD',
+        },
+        {
+          ...formatValue(
+            data.humidity[0]?.total_value || 0,
+            data.humidity[0]?.unit || ''
+          ),
+          color: '#A9A9A9',
           radius: 70,
           strokeWidth: 15,
           label: 'Humidity',
         },
       ];
 
-      const reportFormat = [
-        {
-          title: 'Temperature',
-          value: `${data.temperature?.max || 0} ${
-            data.temperature?.unit || ''
-          }`,
-        },
-        {
-          title: 'CO2',
-          value: `${data.co2?.total || 0} ${data.co2?.unit || ''}`,
-        },
-        {
-          title: 'Humidity',
-          value: `${data.humidity?.max || 0} ${data.humidity?.unit || ''}`,
-        },
-        { title: 'Electricity', value: 'Data unavailable' }, // Placeholder
-      ];
-
-      setChartData(chartFormat);
-      setReportCards(reportFormat);
+      setChartData(formattedData);
     } catch (error) {
-      console.error('Error fetching measurements:', error);
+      console.error('Failed to fetch data:', error);
     }
   };
 
-  const calculatePercentage = (data) => {
-    if (!data || !data.max || !data.total) return 0;
-    return Math.min((data.max / data.total) * 100, 100);
-  };
+  useEffect(() => {
+    if (selectedMonth) {
+      fetchDataFromAPI(selectedMonth);
+    }
+  }, [selectedMonth]);
+
+  useEffect(() => {
+    setShouldAnimate(isFocused);
+  }, [isFocused]);
 
   return (
     <ScrollView style={styles.container}>
+      {/* Title */}
       <Text style={styles.title}>Consumption Overview</Text>
 
+      {/* Donut Chart */}
       <View style={styles.chartContainer}>
+        {/* Month Dropdown */}
         <MonthDropdown
           selectedMonth={selectedMonth}
-          setSelectedMonth={setSelectedMonth}
+          setSelectedMonth={(month) => {
+            console.log('Month selected from dropdown:', month);
+            setSelectedMonth(month);
+          }}
         />
         <View style={styles.rowContainer}>
+          {/* Donut Charts */}
           <View>
             {chartData.slice(0, 2).map((item, index) => (
               <DonutChart
                 key={index}
-                percentage={item.percentage}
+                percentage={item.numeric}
                 color={item.color}
                 radius={item.radius}
                 strokeWidth={item.strokeWidth}
@@ -124,28 +153,33 @@ const HomeScreen = ({ navigation }) => {
             ))}
           </View>
           <View style={styles.chartCorner}>
-            <DonutChart
-              percentage={chartData[2]?.percentage || 0}
-              color={chartData[2]?.color || '#ccc'}
-              radius={chartData[2]?.radius || 70}
-              strokeWidth={chartData[2]?.strokeWidth || 15}
-              animate={shouldAnimate}
-            />
-          </View>
-
-          <View style={styles.legendContainer}>
-            {chartData.map((item, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View
-                  style={[styles.colorBox, { backgroundColor: item.color }]}
-                />
-                <Text style={styles.legendText}>{item.label}</Text>
-              </View>
+            {chartData.slice(2).map((item, index) => (
+              <DonutChart
+                key={index}
+                percentage={item.numeric}
+                color={item.color}
+                radius={item.radius}
+                strokeWidth={item.strokeWidth}
+                animate={shouldAnimate}
+              />
             ))}
           </View>
         </View>
+
+        {/* Legend */}
+        <View style={styles.legendContainer}>
+          {chartData.map((item, index) => (
+            <View key={index} style={styles.legendItem}>
+              <View
+                style={[styles.colorBox, { backgroundColor: item.color }]}
+              />
+              <Text style={styles.legendText}>{item.label}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
+      {/* Reports */}
       <View style={styles.subtitleRow}>
         <Text style={styles.subtitle}>Monthly reports</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
@@ -153,16 +187,17 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
+      {/* Report Cards */}
       <View style={styles.cardGrid}>
-        {reportCards.map((report, index) => (
+        {chartData.map((report, index) => (
           <ReportCard
             key={index}
-            title={report.title}
-            value={report.value}
+            title={report.label}
+            value={`${report.display} ${report.unit}`}
             onPress={() =>
               navigation.navigate('Reports', {
                 screen: 'Report',
-                params: { reportTitle: report.title },
+                params: { reportTitle: report.label },
               })
             }
           />
@@ -178,7 +213,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    marginTop: 20,
+    marginTop: 60,
   },
   title: {
     fontSize: 22,
@@ -212,16 +247,16 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   legendContainer: {
-    position: 'absolute',
-    bottom: 16,
-    right: -6,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 16,
+    justifyContent: 'flex-start',
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+    marginRight: 16,
   },
   colorBox: {
     width: 16,
