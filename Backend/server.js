@@ -905,7 +905,6 @@ function getWeekNumberISO(date) {
 }
 
 // Function to process data by week for 'last_3_months'
-// Function to process data by week for 'last_3_months'
 function processDataByWeek(results, startDate, endDate) {
   const dataByWeek = {};
 
