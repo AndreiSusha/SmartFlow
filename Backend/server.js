@@ -746,83 +746,6 @@ app.get('/api/measurement-report', async (req, res) => {
   }
 });
 
-// API endpoint for retrieving monthly measurements
-// app.get('/api/measurements/last-calendar-month', async (req, res) => {
-//   const { month } = req.query;
-
-//   if (!month) {
-//     return res.status(400).json({ error: 'Month parameter is required' });
-//   }
-
-//   const queries = {
-//     temperature: `
-//       SELECT
-//         YEAR(timestamp) AS year,
-//         MONTH(timestamp) AS month,
-//         SUM(value) AS total_value,
-//         unit
-//       FROM temperature_measurements
-//       WHERE MONTH(timestamp) = ?
-//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
-//       ORDER BY year, month;
-//     `,
-//     co2: `
-//       SELECT
-//         YEAR(timestamp) AS year,
-//         MONTH(timestamp) AS month,
-//         SUM(value) AS total_value,
-//         unit
-//       FROM co2_measurements
-//       WHERE MONTH(timestamp) = ?
-//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
-//       ORDER BY year, month;
-//     `,
-//     vdd: `
-//       SELECT
-//         YEAR(timestamp) AS year,
-//         MONTH(timestamp) AS month,
-//         SUM(value) AS total_value,
-//         unit
-//       FROM vdd_measurements
-//       WHERE MONTH(timestamp) = ?
-//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
-//       ORDER BY year, month;
-//     `,
-//     humidity: `
-//       SELECT
-//         YEAR(timestamp) AS year,
-//         MONTH(timestamp) AS month,
-//         SUM(value) AS total_value,
-//         unit
-//       FROM humidity_measurements
-//       WHERE MONTH(timestamp) = ?
-//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
-//       ORDER BY year, month;
-//     `,
-//   };
-
-//   try {
-//     const temperaturePromise = pool.query(queries.temperature, [month]);
-//     const co2Promise = pool.query(queries.co2, [month]);
-//     const vddPromise = pool.query(queries.vdd, [month]);
-//     const humidityPromise = pool.query(queries.humidity, [month]);
-
-//     const [temperatureResults] = await temperaturePromise;
-//     const [co2Results] = await co2Promise;
-//     const [vddResults] = await vddPromise;
-//     const [humidityResults] = await humidityPromise;
-
-//     res.json({
-//       temperature: temperatureResults,
-//       co2: co2Results,
-//       vdd: vddResults,
-//       humidity: humidityResults,
-//     });
-//   } catch (err) {
-//     console.error('Error fetching measurements:', err);
-//     res.status(500).json({ error: 'Failed to fetch measurements' });
-//   }
-// });
 
 app.get('/api/measurements/last-calendar-month', async (req, res) => {
   const { month } = req.query;
@@ -1181,7 +1104,7 @@ app.get('/api/assets/:id/measurements', async (req, res) => {
   const assetId = req.params.id;
 
   const query = `
-    SELECT atm.measurement_type, atm.unit
+    SELECT atm.measurement_type, atm.unit, atm.aggr_type
     FROM asset_type_measurements AS atm
     INNER JOIN assets AS a ON a.asset_type_id = atm.asset_type_id
     WHERE a.id = ?
@@ -1261,6 +1184,9 @@ app.get('/measurements', async (req, res) => {
   const measurementTable = req.query.measurementTable;
   const assetId = req.query.assetId;
   const period = req.query.period;
+  const metricType = req.query.metricType === 'total' ? 'total' : 'average';
+
+  console.log('Query Parameters:', measurementTable, assetId, period, metricType);
 
   // Validate input parameters
   if (!measurementTable || !assetId || !period) {
@@ -1291,7 +1217,7 @@ app.get('/measurements', async (req, res) => {
     // First, find the latest timestamp in the measurement table for the given assetId
     const latestDateQuery = `
       SELECT MAX(timestamp) AS latestTimestamp
-      FROM \`${measurementTable}\`
+      FROM ${measurementTable}
       WHERE ${idColumn} = ?
     `;
 
@@ -1307,9 +1233,6 @@ app.get('/measurements', async (req, res) => {
     console.log('Latest Timestamp from Database:', latestTimestamp);
     console.log('Latest Timestamp (ISOString):', latestTimestamp.toISOString());
 
-    // Adjust currentDate if necessary
-    const dataEndDate = new Date('2022-12-31T23:59:59'); // Adjust based on your data
-    // const currentDate = latestTimestamp > dataEndDate ? dataEndDate : latestTimestamp;
     const currentDate = latestTimestamp;
 
     // Define the date range based on the period
@@ -1326,7 +1249,6 @@ app.get('/measurements', async (req, res) => {
     } else if (period === 'past_year') {
       startDate = new Date(currentDate);
       startDate.setFullYear(currentDate.getFullYear() - 1); // One year back from currentDate
-      // Keep the same month and day
     } else {
       return res.status(400).json({ error: 'Invalid period specified.' });
     }
@@ -1340,7 +1262,7 @@ app.get('/measurements', async (req, res) => {
     // Construct the SQL query
     const dataQuery = `
       SELECT id, timestamp, value, ${idColumn}
-      FROM \`${measurementTable}\`
+      FROM ${measurementTable}
       WHERE ${idColumn} = ? AND timestamp BETWEEN ? AND ?
       ORDER BY timestamp ASC
     `;
@@ -1356,11 +1278,11 @@ app.get('/measurements', async (req, res) => {
 
     // Data aggregation based on the period
     if (period === 'last_week') {
-      responseData = processDataByDay(dataResults, startDate, endDate);
+      responseData = processDataByDay(dataResults, startDate, endDate, metricType);
     } else if (period === 'last_3_months') {
-      responseData = processDataByWeek(dataResults, startDate, endDate);
+      responseData = processDataByWeek(dataResults, startDate, endDate, metricType);
     } else if (period === 'past_year') {
-      responseData = processDataByMonth(dataResults, startDate, endDate);
+      responseData = processDataByMonth(dataResults, startDate, endDate, metricType);
     }
 
     res.json(responseData);
@@ -1371,7 +1293,7 @@ app.get('/measurements', async (req, res) => {
 });
 
 // Function to process data by day for 'last_week'
-function processDataByDay(results, startDate, endDate) {
+function processDataByDay(results, startDate, endDate, metricType) {
   const dataByDate = {};
   const dateList = [];
   const responseData = [];
@@ -1413,12 +1335,19 @@ function processDataByDay(results, startDate, endDate) {
   dateList.forEach((dateStr) => {
     const values = dataByDate[dateStr];
     const sum = values.reduce((a, b) => a + b, 0);
-    const averageValue = values.length ? sum / values.length : null;
-    responseData.push({
-      date: dateStr,
-      averageValue:
-        averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
-    });
+    if (metricType === 'total') {
+      const totalValue = values.length ? sum : null;
+      responseData.push({
+        date: dateStr,
+        averageValue: totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
+      });
+    } else {
+      const averageValue = values.length ? sum / values.length : null;
+      responseData.push({
+        date: dateStr,
+        averageValue: averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+      });
+    }
   });
 
   return responseData;
@@ -1435,7 +1364,7 @@ function getWeekNumberISO(date) {
 }
 
 // Function to process data by week for 'last_3_months'
-function processDataByWeek(results, startDate, endDate) {
+function processDataByWeek(results, startDate, endDate, metricType) {
   const dataByWeek = {};
 
   // Collect data into dataByWeek
@@ -1457,7 +1386,7 @@ function processDataByWeek(results, startDate, endDate) {
   let current = new Date(startDate);
   // Align 'current' to the start of the week (Monday)
   const day = current.getDay();
-  const diff = day === 0 ? 6 : day - 1; // If Sunday (0), go back 6 days, else go back (day-1)
+  const diff = day === 0 ? 6 : day - 1; 
   current.setDate(current.getDate() - diff);
 
   while (current <= endDate) {
@@ -1465,7 +1394,6 @@ function processDataByWeek(results, startDate, endDate) {
     const weekKey = `${year}-W${week}`;
     if (!weekKeysInRange.includes(weekKey)) {
       weekKeysInRange.push(weekKey);
-      // Store the start date of the week
       const weekStartStr = current.toISOString().slice(0, 10); // YYYY-MM-DD
       weekStartDates[weekKey] = weekStartStr;
     }
@@ -1477,27 +1405,34 @@ function processDataByWeek(results, startDate, endDate) {
   weekKeysInRange.forEach((weekKey) => {
     const values = dataByWeek[weekKey] || [];
     const sum = values.reduce((a, b) => a + b, 0);
-    const averageValue = values.length ? sum / values.length : null;
-    responseData.push({
-      date: weekStartDates[weekKey],
-      averageValue:
-        averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
-    });
+
+    if (metricType === 'total') {
+      const totalValue = values.length ? sum : null;
+      responseData.push({
+        date: weekStartDates[weekKey],
+        averageValue: totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
+      });
+    } else {
+      const averageValue = values.length ? sum / values.length : null;
+      responseData.push({
+        date: weekStartDates[weekKey],
+        averageValue: averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+      });
+    }
   });
 
   return responseData;
 }
 
 // Function to process data by month for 'past_year'
-function processDataByMonth(results, startDate, endDate) {
+function processDataByMonth(results, startDate, endDate, metricType) {
   const dataByMonth = {};
 
   // Collect data into dataByMonth
   results.forEach((row) => {
     const date = new Date(row.timestamp);
     const monthKey = `${date.getFullYear()}-${(
-      '0' +
-      (date.getMonth() + 1)
+      '0' + (date.getMonth() + 1)
     ).slice(-2)}`; // 'YYYY-MM'
 
     if (!dataByMonth[monthKey]) {
@@ -1512,8 +1447,7 @@ function processDataByMonth(results, startDate, endDate) {
   current.setDate(1); // Set to first day of month
   while (current <= endDate) {
     const monthKey = `${current.getFullYear()}-${(
-      '0' +
-      (current.getMonth() + 1)
+      '0' + (current.getMonth() + 1)
     ).slice(-2)}`;
     monthKeysInRange.push(monthKey);
     current.setMonth(current.getMonth() + 1); // Move to next month
@@ -1525,16 +1459,23 @@ function processDataByMonth(results, startDate, endDate) {
     const values = dataByMonth[monthKey];
     if (values && values.length > 0) {
       const sum = values.reduce((a, b) => a + b, 0);
-      const averageValue = sum / values.length;
-      responseData.push({
-        monthLabel: monthKey,
-        averageValue: parseFloat(averageValue.toFixed(2)),
-      });
+      if (metricType === 'total') {
+        const totalValue = sum;
+        responseData.push({
+          monthLabel: monthKey,
+          averageValue: parseFloat(totalValue.toFixed(2)),
+        });
+      } else {
+        const averageValue = sum / values.length;
+        responseData.push({
+          monthLabel: monthKey,
+          averageValue: parseFloat(averageValue.toFixed(2)),
+        });
+      }
     }
-    // Optionally, exclude months with no data by not adding them to responseData
   });
 
-  return responseData;
+  return responseData;
 }
 
 // Start the server
