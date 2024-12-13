@@ -3,8 +3,7 @@ import dotenv from 'dotenv'; // Use `import` for dotenv
 import mysql from 'mysql2/promise'; // Use mysql2's `promise` import
 // import bcrypt from 'bcrypt'; // For password hashing
 import jwt from 'jsonwebtoken'; // For token generation
-import { NodeSSH } from 'node-ssh'; 
-
+import { NodeSSH } from 'node-ssh';
 
 // Load environment variables
 dotenv.config();
@@ -19,36 +18,8 @@ const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE
+  database: process.env.MYSQL_DATABASE,
 });
-
-pool.getConnection()
-  .then((connection) => {
-    console.log('Connected to the database!');
-    connection.release();
-  })
-  .catch((err) => {
-    console.error('Database connection error: ', err);
-  });
-
-
-  app.get('/co2', async (req, res) => {
-    try {
-      // Correct the table name and column name
-      const [rows] = await pool.query('SELECT value FROM co2_measurements');
-      
-      // Log the result to the console
-      console.log('CO2 Data:', rows);  // Logs the query results
-  
-      res.json(rows);  // Send the data as the response
-    } catch (error) {
-      console.error('Error in fetching CO2 data:', error);
-      res.status(500).json({ error: 'Database error' });
-    }
-  });
-  
-
-
 
 
 // Middleware for JWT authentication
@@ -116,36 +87,36 @@ const authenticateJWT = (req, res, next) => {
 //   await initializeMySQL(); // Then initialize MySQL
 // }
 
-  app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).send('Username and password are required');
+  }
 
-    if (!email || !password) {
-      return res.status(400).send('Username and password are required');
+  try {
+    // Query the database to find the user by username
+    const [userResults] = await pool.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (userResults.length === 0) {
+      return res.status(400).send('Invalid credentials');
     }
-  
-    try {
-      // Query the database to find the user by username
-      const [userResults] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
 
-      if (userResults.length === 0) {
-        return res.status(400).send('Invalid credentials');
-      }
+    const user = userResults[0];
 
-      const user = userResults[0];
-
-      if (user.password_hash !== password) {
-        return res.status(400).send('Invalid credentials');
-      }
-    
-      res.json(user);
-    } catch(err){
-      console.error('Error checking login data:', err);
-      res.status(500).json({ error: 'Failed to checking login' });
+    if (user.password_hash !== password) {
+      return res.status(400).send('Invalid credentials');
     }
-  });
 
-  
+    res.json(user);
+  } catch (err) {
+    console.error('Error checking login data:', err);
+    res.status(500).json({ error: 'Failed to checking login' });
+  }
+});
 
 
 // API endpoint to see the assets
@@ -789,54 +760,64 @@ app.get('/api/measurement-report', async (req, res) => {
 
 // API endpoint for retrieving monthly measurements
 app.get('/api/measurements/last-calendar-month', async (req, res) => {
+  const { month } = req.query;
+
+  if (!month) {
+    return res.status(400).json({ error: 'Month parameter is required' });
+  }
+
   const queries = {
     temperature: `
-      SELECT 
-        id,
-        timestamp AS time,
-        value AS value,
-        unit AS unit
+      SELECT
+        YEAR(timestamp) AS year,
+        MONTH(timestamp) AS month,
+        SUM(value) AS total_value,
+        unit
       FROM temperature_measurements
-      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
-        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+      WHERE MONTH(timestamp) = ?
+      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      ORDER BY year, month;
     `,
     co2: `
-      SELECT 
-        id,
-        timestamp AS time,
-        value AS value,
-        unit AS unit
+      SELECT
+        YEAR(timestamp) AS year,
+        MONTH(timestamp) AS month,
+        SUM(value) AS total_value,
+        unit
       FROM co2_measurements
-      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
-        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+      WHERE MONTH(timestamp) = ?
+      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      ORDER BY year, month;
     `,
     vdd: `
-      SELECT 
-        id,
-        timestamp AS time,
-        value AS value,
-        unit AS unit
+      SELECT
+        YEAR(timestamp) AS year,
+        MONTH(timestamp) AS month,
+        SUM(value) AS total_value,
+        unit
       FROM vdd_measurements
-      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
-        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+      WHERE MONTH(timestamp) = ?
+      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      ORDER BY year, month;
     `,
     humidity: `
-      SELECT 
-        id,
-        timestamp AS time,
-        value AS value,
-        unit AS unit
+      SELECT
+        YEAR(timestamp) AS year,
+        MONTH(timestamp) AS month,
+        SUM(value) AS total_value,
+        unit
       FROM humidity_measurements
-      WHERE MONTH(timestamp) = MONTH(CURRENT_DATE() - INTERVAL 1 MONTH)
-        AND YEAR(timestamp) = YEAR(CURRENT_DATE() - INTERVAL 1 MONTH);
+      WHERE MONTH(timestamp) = ?
+      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      ORDER BY year, month;
     `,
   };
 
   try {
-    const temperaturePromise = pool.query(queries.temperature);
-    const co2Promise = pool.query(queries.co2);
-    const vddPromise = pool.query(queries.vdd);
-    const humidityPromise = pool.query(queries.humidity);
+    const temperaturePromise = pool.query(queries.temperature, [month]);
+    const co2Promise = pool.query(queries.co2, [month]);
+    const vddPromise = pool.query(queries.vdd, [month]);
+    const humidityPromise = pool.query(queries.humidity, [month]);
 
     const [temperatureResults] = await temperaturePromise;
     const [co2Results] = await co2Promise;
@@ -850,10 +831,8 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
       humidity: humidityResults,
     });
   } catch (err) {
-    console.error('Error fetching measurements for last calendar month:', err);
-    res
-      .status(500)
-      .json({ error: 'Failed to fetch measurements for last calendar month' });
+    console.error('Error fetching measurements:', err);
+    res.status(500).json({ error: 'Failed to fetch measurements' });
   }
 });
 
@@ -931,7 +910,17 @@ app.put('/user/:id', async (req, res) => {
     user_summary,
   } = req.body;
 
-  if (!username && !email && !password_hash && !role_id && !customer_id && !asset_id && !asset_name && !phone_number && !user_summary) {
+  if (
+    !username &&
+    !email &&
+    !password_hash &&
+    !role_id &&
+    !customer_id &&
+    !asset_id &&
+    !asset_name &&
+    !phone_number &&
+    !user_summary
+  ) {
     return res.status(400).send('No fields to update');
   }
 
@@ -981,7 +970,9 @@ app.put('/user/:id', async (req, res) => {
     userValues.push(userId);
 
     if (userFields.length > 0) {
-      const userQuery = `UPDATE users SET ${userFields.join(', ')} WHERE id = ?`;
+      const userQuery = `UPDATE users SET ${userFields.join(
+        ', '
+      )} WHERE id = ?`;
       const [userResult] = await connection.query(userQuery, userValues);
       if (userResult.affectedRows > 0) updateResults.userUpdated = true;
       else updateResults.errors.push('User not found');
@@ -989,7 +980,9 @@ app.put('/user/:id', async (req, res) => {
 
     if (asset_id || asset_name) {
       const assetCheckQuery = `SELECT id FROM assets WHERE id = ?`;
-      const [assetCheckResult] = await connection.query(assetCheckQuery, [asset_id]);
+      const [assetCheckResult] = await connection.query(assetCheckQuery, [
+        asset_id,
+      ]);
 
       if (assetCheckResult.length > 0) {
         if (asset_name) {
@@ -1014,7 +1007,10 @@ app.put('/user/:id', async (req, res) => {
 
     await connection.commit();
 
-    const [updatedUser] = await connection.query(`SELECT * FROM users WHERE id = ?`, [userId]);
+    const [updatedUser] = await connection.query(
+      `SELECT * FROM users WHERE id = ?`,
+      [userId]
+    );
     res.status(200).json({ updateResults, updatedUser });
   } catch (err) {
     await connection.rollback();
@@ -1492,4 +1488,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-

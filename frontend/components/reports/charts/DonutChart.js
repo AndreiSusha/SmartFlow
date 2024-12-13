@@ -105,7 +105,7 @@ const DonutChart = ({
         defaultValue="0"
         style={[
           StyleSheet.absoluteFillObject,
-          { fontSize: radius / 2, color: textColor, textAlign: 'center' },
+          { fontSize: radius / 3, color: textColor, textAlign: 'center' },
         ]}
       />
     </View>
