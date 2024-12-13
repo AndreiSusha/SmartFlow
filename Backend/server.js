@@ -13,14 +13,12 @@ const app = express();
 // Middleware to parse JSON in request bodies
 app.use(express.json());
 
-
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
 });
-
 
 // Middleware for JWT authentication
 const authenticateJWT = (req, res, next) => {
@@ -118,7 +116,6 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-
 // API endpoint to see the assets
 app.get('/api/assets', async (req, res) => {
   const query = `
@@ -149,7 +146,6 @@ app.get('/api/assets', async (req, res) => {
       },
       usersAssigned: row.users_assigned,
     }));
-    
 
     res.json(formattedResults); // Send the formatted response
   } catch (err) {
@@ -174,7 +170,6 @@ app.get('/api/asset-types', async (req, res) => {
   }
 });
 
-
 // API endpoint to add new asset
 app.post('/api/assets', async (req, res) => {
   const {
@@ -182,13 +177,14 @@ app.post('/api/assets', async (req, res) => {
     assetTypeName,
     additionalInformation,
     existingLocationId,
-    newLocation
-
+    newLocation,
   } = req.body;
 
   // Validate core fields
   if (!assetName || !assetTypeName) {
-    return res.status(400).json({ error: 'Missing required fields: assetName or assetTypeName' });
+    return res
+      .status(400)
+      .json({ error: 'Missing required fields: assetName or assetTypeName' });
   }
 
   const connection = await pool.getConnection();
@@ -201,7 +197,6 @@ app.post('/api/assets', async (req, res) => {
       [assetTypeName]
     );
     if (assetTypeRows.length === 0) {
-
       throw new Error(`Asset type '${assetTypeName}' not found`);
     }
     const assetTypeId = assetTypeRows[0].id;
@@ -221,37 +216,34 @@ app.post('/api/assets', async (req, res) => {
       const { country, city, address, zipCode } = newLocation;
       // Validate required fields for new location
       if (!country || !city) {
-        return res.status(400).json({ error: 'Missing required location fields (country, city)' });
+        return res
+          .status(400)
+          .json({ error: 'Missing required location fields (country, city)' });
       }
       const [locationResult] = await connection.query(
-        'INSERT INTO locations (country, city, address, zip_code, customer_id) VALUES (?, ?, ?, ?, 3)', 
+        'INSERT INTO locations (country, city, address, zip_code, customer_id) VALUES (?, ?, ?, ?, 3)',
         [country, city, address || null, zipCode || null]
       );
       locationId = locationResult.insertId;
     } else {
       // No existingLocationId and no newLocation provided
-      return res.status(400).json({ error: 'No location information provided' });
+      return res
+        .status(400)
+        .json({ error: 'No location information provided' });
     }
 
     // Insert the new asset
     const [assetResult] = await connection.query(
       'INSERT INTO assets (name, asset_type_id, location_id, description, created_at) VALUES (?, ?, ?, ?, NOW())',
-      [
-        assetName,
-        assetTypeId,
-        locationId,
-        additionalInformation || null
-      ]
+      [assetName, assetTypeId, locationId, additionalInformation || null]
     );
-
 
     await connection.commit();
 
     res.status(201).json({
       message: 'Asset added successfully',
       assetId: assetResult.insertId,
-      locationId: locationId
-
+      locationId: locationId,
     });
   } catch (error) {
     await connection.rollback();
@@ -262,8 +254,7 @@ app.post('/api/assets', async (req, res) => {
   }
 });
 
-
-// API endpoint for assset details 
+// API endpoint for assset details
 
 app.get('/api/asset-details/:id', async (req, res) => {
   const assetId = req.params.id;
@@ -351,7 +342,6 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
-
 // API endpoint to edit asset details
 app.put('/api/asset/:id', async (req, res) => {
   const assetId = req.params.id; // Use asset_id from the URL
@@ -436,7 +426,6 @@ app.put('/api/asset/:id', async (req, res) => {
   }
 });
 
-
 // API endpoint to delete an asset
 app.delete('/api/assets/:id', async (req, res) => {
   const assetId = req.params.id;
@@ -482,7 +471,6 @@ app.delete('/api/assets/:id', async (req, res) => {
     connection.release(); // Release the database connection
   }
 });
-
 
 //// API endpoint for measurements
 app.get('/api/measurements', async (req, res) => {
@@ -759,6 +747,83 @@ app.get('/api/measurement-report', async (req, res) => {
 });
 
 // API endpoint for retrieving monthly measurements
+// app.get('/api/measurements/last-calendar-month', async (req, res) => {
+//   const { month } = req.query;
+
+//   if (!month) {
+//     return res.status(400).json({ error: 'Month parameter is required' });
+//   }
+
+//   const queries = {
+//     temperature: `
+//       SELECT
+//         YEAR(timestamp) AS year,
+//         MONTH(timestamp) AS month,
+//         SUM(value) AS total_value,
+//         unit
+//       FROM temperature_measurements
+//       WHERE MONTH(timestamp) = ?
+//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+//       ORDER BY year, month;
+//     `,
+//     co2: `
+//       SELECT
+//         YEAR(timestamp) AS year,
+//         MONTH(timestamp) AS month,
+//         SUM(value) AS total_value,
+//         unit
+//       FROM co2_measurements
+//       WHERE MONTH(timestamp) = ?
+//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+//       ORDER BY year, month;
+//     `,
+//     vdd: `
+//       SELECT
+//         YEAR(timestamp) AS year,
+//         MONTH(timestamp) AS month,
+//         SUM(value) AS total_value,
+//         unit
+//       FROM vdd_measurements
+//       WHERE MONTH(timestamp) = ?
+//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+//       ORDER BY year, month;
+//     `,
+//     humidity: `
+//       SELECT
+//         YEAR(timestamp) AS year,
+//         MONTH(timestamp) AS month,
+//         SUM(value) AS total_value,
+//         unit
+//       FROM humidity_measurements
+//       WHERE MONTH(timestamp) = ?
+//       GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+//       ORDER BY year, month;
+//     `,
+//   };
+
+//   try {
+//     const temperaturePromise = pool.query(queries.temperature, [month]);
+//     const co2Promise = pool.query(queries.co2, [month]);
+//     const vddPromise = pool.query(queries.vdd, [month]);
+//     const humidityPromise = pool.query(queries.humidity, [month]);
+
+//     const [temperatureResults] = await temperaturePromise;
+//     const [co2Results] = await co2Promise;
+//     const [vddResults] = await vddPromise;
+//     const [humidityResults] = await humidityPromise;
+
+//     res.json({
+//       temperature: temperatureResults,
+//       co2: co2Results,
+//       vdd: vddResults,
+//       humidity: humidityResults,
+//     });
+//   } catch (err) {
+//     console.error('Error fetching measurements:', err);
+//     res.status(500).json({ error: 'Failed to fetch measurements' });
+//   }
+// });
+
 app.get('/api/measurements/last-calendar-month', async (req, res) => {
   const { month } = req.query;
 
@@ -771,44 +836,40 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value,
-        unit
+        SUM(value) AS total_value
       FROM temperature_measurements
       WHERE MONTH(timestamp) = ?
-      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      GROUP BY YEAR(timestamp), MONTH(timestamp)
       ORDER BY year, month;
     `,
     co2: `
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value,
-        unit
+        SUM(value) AS total_value
       FROM co2_measurements
       WHERE MONTH(timestamp) = ?
-      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      GROUP BY YEAR(timestamp), MONTH(timestamp)
       ORDER BY year, month;
     `,
     vdd: `
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value,
-        unit
+        SUM(value) AS total_value
       FROM vdd_measurements
       WHERE MONTH(timestamp) = ?
-      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      GROUP BY YEAR(timestamp), MONTH(timestamp)
       ORDER BY year, month;
     `,
     humidity: `
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value,
-        unit
+        SUM(value) AS total_value
       FROM humidity_measurements
       WHERE MONTH(timestamp) = ?
-      GROUP BY YEAR(timestamp), MONTH(timestamp), unit
+      GROUP BY YEAR(timestamp), MONTH(timestamp)
       ORDER BY year, month;
     `,
   };
@@ -1085,8 +1146,6 @@ app.post('/user', async (req, res) => {
   }
 });
 
-
-
 app.get('/locations/:customerId', async (req, res) => {
   const { customerId } = req.params;
 
@@ -1104,7 +1163,9 @@ app.get('/locations/:customerId', async (req, res) => {
 
     // Check if no locations are found
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'No locations found for the given customer' });
+      return res
+        .status(404)
+        .json({ message: 'No locations found for the given customer' });
     }
 
     // Return locations
@@ -1131,12 +1192,10 @@ app.get('/api/assets/:id/measurements', async (req, res) => {
 
     res.json(rows);
   } catch (error) {
-    console.error("Error fetching measurements:", error);
-    res.status(500).json({ error: "Failed to fetch measurements" });
+    console.error('Error fetching measurements:', error);
+    res.status(500).json({ error: 'Failed to fetch measurements' });
   }
 });
-
-
 
 //// API endpoint for measurements
 app.get('/api/measurements', async (req, res) => {
@@ -1198,10 +1257,7 @@ app.get('/api/measurements', async (req, res) => {
   }
 });
 
-
-
-
-app.get("/measurements", async (req, res) => {
+app.get('/measurements', async (req, res) => {
   const measurementTable = req.query.measurementTable;
   const assetId = req.query.assetId;
   const period = req.query.period;
@@ -1210,27 +1266,27 @@ app.get("/measurements", async (req, res) => {
   if (!measurementTable || !assetId || !period) {
     return res
       .status(400)
-      .json({ error: "Missing required query parameters." });
+      .json({ error: 'Missing required query parameters.' });
   }
 
   // Allowed measurement tables to prevent SQL injection
   const allowedTables = [
-    "co2_measurements",
-    "humidity_measurements",
-    "light_measurements",
-    "temperature_measurements",
-    "vdd_measurements",
+    'co2_measurements',
+    'humidity_measurements',
+    'light_measurements',
+    'temperature_measurements',
+    'vdd_measurements',
     // Add other measurement tables as needed
   ];
 
   if (!allowedTables.includes(measurementTable)) {
     return res
       .status(400)
-      .json({ error: "Invalid measurement table specified." });
+      .json({ error: 'Invalid measurement table specified.' });
   }
 
   try {
-    const idColumn = "asset_id"; // Use 'asset_id' as per your table schema
+    const idColumn = 'asset_id'; // Use 'asset_id' as per your table schema
 
     // First, find the latest timestamp in the measurement table for the given assetId
     const latestDateQuery = `
@@ -1244,15 +1300,15 @@ app.get("/measurements", async (req, res) => {
     if (!latestDateResult || !latestDateResult[0].latestTimestamp) {
       return res
         .status(404)
-        .json({ error: "No data found for the given assetId." });
+        .json({ error: 'No data found for the given assetId.' });
     }
 
     const latestTimestamp = new Date(latestDateResult[0].latestTimestamp);
-    console.log("Latest Timestamp from Database:", latestTimestamp);
-    console.log("Latest Timestamp (ISOString):", latestTimestamp.toISOString());
+    console.log('Latest Timestamp from Database:', latestTimestamp);
+    console.log('Latest Timestamp (ISOString):', latestTimestamp.toISOString());
 
     // Adjust currentDate if necessary
-    const dataEndDate = new Date("2022-12-31T23:59:59"); // Adjust based on your data
+    const dataEndDate = new Date('2022-12-31T23:59:59'); // Adjust based on your data
     // const currentDate = latestTimestamp > dataEndDate ? dataEndDate : latestTimestamp;
     const currentDate = latestTimestamp;
 
@@ -1260,26 +1316,26 @@ app.get("/measurements", async (req, res) => {
     let startDate;
     let endDate = currentDate;
 
-    if (period === "last_week") {
+    if (period === 'last_week') {
       // Set startDate to 6 days before currentDate
       startDate = new Date(latestTimestamp.getTime() - 6 * 24 * 60 * 60 * 1000);
-    } else if (period === "last_3_months") {
+    } else if (period === 'last_3_months') {
       startDate = new Date(currentDate);
       startDate.setMonth(currentDate.getMonth() - 2); // Include the current month and two previous months
       startDate.setDate(1); // Start from the first day of the month
-    } else if (period === "past_year") {
+    } else if (period === 'past_year') {
       startDate = new Date(currentDate);
       startDate.setFullYear(currentDate.getFullYear() - 1); // One year back from currentDate
       // Keep the same month and day
     } else {
-      return res.status(400).json({ error: "Invalid period specified." });
+      return res.status(400).json({ error: 'Invalid period specified.' });
     }
 
-    const startDateStr = startDate.toISOString().slice(0, 19).replace("T", " ");
-    const endDateStr = endDate.toISOString().slice(0, 19).replace("T", " ");
+    const startDateStr = startDate.toISOString().slice(0, 19).replace('T', ' ');
+    const endDateStr = endDate.toISOString().slice(0, 19).replace('T', ' ');
 
-    console.log("Start Date:", startDateStr);
-    console.log("End Date:", endDateStr);
+    console.log('Start Date:', startDateStr);
+    console.log('End Date:', endDateStr);
 
     // Construct the SQL query
     const dataQuery = `
@@ -1299,18 +1355,18 @@ app.get("/measurements", async (req, res) => {
     let responseData = [];
 
     // Data aggregation based on the period
-    if (period === "last_week") {
+    if (period === 'last_week') {
       responseData = processDataByDay(dataResults, startDate, endDate);
-    } else if (period === "last_3_months") {
+    } else if (period === 'last_3_months') {
       responseData = processDataByWeek(dataResults, startDate, endDate);
-    } else if (period === "past_year") {
+    } else if (period === 'past_year') {
       responseData = processDataByMonth(dataResults, startDate, endDate);
     }
 
     res.json(responseData);
   } catch (err) {
-    console.error("Error fetching measurements:", err);
-    res.status(500).json({ error: "Database query error." });
+    console.error('Error fetching measurements:', err);
+    res.status(500).json({ error: 'Database query error.' });
   }
 });
 
@@ -1321,16 +1377,20 @@ function processDataByDay(results, startDate, endDate) {
   const responseData = [];
 
   // Generate list of dates between startDate and endDate
-  let current = new Date(Date.UTC(
-    startDate.getUTCFullYear(),
-    startDate.getUTCMonth(),
-    startDate.getUTCDate()
-  ));
-  const end = new Date(Date.UTC(
-    endDate.getUTCFullYear(),
-    endDate.getUTCMonth(),
-    endDate.getUTCDate()
-  ));
+  let current = new Date(
+    Date.UTC(
+      startDate.getUTCFullYear(),
+      startDate.getUTCMonth(),
+      startDate.getUTCDate()
+    )
+  );
+  const end = new Date(
+    Date.UTC(
+      endDate.getUTCFullYear(),
+      endDate.getUTCMonth(),
+      endDate.getUTCDate()
+    )
+  );
 
   while (current <= end) {
     const dateStr = current.toISOString().slice(0, 10); // 'YYYY-MM-DD'
@@ -1356,13 +1416,13 @@ function processDataByDay(results, startDate, endDate) {
     const averageValue = values.length ? sum / values.length : null;
     responseData.push({
       date: dateStr,
-      averageValue: averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+      averageValue:
+        averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
     });
   });
 
   return responseData;
 }
-
 
 // Helper function to get ISO week number and year
 function getWeekNumberISO(date) {
@@ -1397,7 +1457,7 @@ function processDataByWeek(results, startDate, endDate) {
   let current = new Date(startDate);
   // Align 'current' to the start of the week (Monday)
   const day = current.getDay();
-  const diff = (day === 0 ? 6 : day - 1); // If Sunday (0), go back 6 days, else go back (day-1)
+  const diff = day === 0 ? 6 : day - 1; // If Sunday (0), go back 6 days, else go back (day-1)
   current.setDate(current.getDate() - diff);
 
   while (current <= endDate) {
@@ -1420,13 +1480,13 @@ function processDataByWeek(results, startDate, endDate) {
     const averageValue = values.length ? sum / values.length : null;
     responseData.push({
       date: weekStartDates[weekKey],
-      averageValue: averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+      averageValue:
+        averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
     });
   });
 
   return responseData;
 }
-
 
 // Function to process data by month for 'past_year'
 function processDataByMonth(results, startDate, endDate) {
@@ -1436,7 +1496,7 @@ function processDataByMonth(results, startDate, endDate) {
   results.forEach((row) => {
     const date = new Date(row.timestamp);
     const monthKey = `${date.getFullYear()}-${(
-      "0" +
+      '0' +
       (date.getMonth() + 1)
     ).slice(-2)}`; // 'YYYY-MM'
 
@@ -1452,7 +1512,7 @@ function processDataByMonth(results, startDate, endDate) {
   current.setDate(1); // Set to first day of month
   while (current <= endDate) {
     const monthKey = `${current.getFullYear()}-${(
-      "0" +
+      '0' +
       (current.getMonth() + 1)
     ).slice(-2)}`;
     monthKeysInRange.push(monthKey);
@@ -1476,12 +1536,6 @@ function processDataByMonth(results, startDate, endDate) {
 
   return responseData;
 }
-
-
-
-
-
-
 
 // Start the server
 const PORT = process.env.PORT || 3000;
