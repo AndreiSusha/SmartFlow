@@ -4,6 +4,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 import UserManagement from "../screens/UserManagmnet/UserManagemet";
 import UserDetails from "../screens/UserManagmnet/UserDetails";
 import AssetManagement from "../screens/AssetManagement/AssetManagement";
+import ChangeEmail from "../screens/ChnageEmail";
+import ChangePassword from "../screens/ChangePassword";
 import { Platform } from "react-native";
 import ChooseAssetType from "../screens/AssetManagement/AddAsset/ChooseAssetType";
 import { TouchableOpacity } from "react-native";
@@ -176,6 +178,28 @@ const SettingsNavigator = () => {
               elevation: Platform.OS === "android" ? 0 : undefined,
             },
             title: "Asset Management",
+          }}
+        />
+        <Stack.Screen
+          name="ChangeEmail"
+          component={ChangeEmail}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Change Email",
+          }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePassword}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Change Password",
           }}
         />
         
