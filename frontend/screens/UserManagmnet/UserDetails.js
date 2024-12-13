@@ -5,6 +5,7 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacity,
+
   Image,
 } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
@@ -23,12 +24,14 @@ const UserDetails = ({
   setModalVisible,
 }) => {
   const { userId } = route.params;
+
   const { userDetails, setUserDetails } = useUserContext();
   const [loading, setLoading] = useState(true);
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
   const { removeUser } = useUserContext();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 
   // Function to fetch user details
   const fetchUserDetails = useCallback(async () => {
@@ -97,7 +100,7 @@ const UserDetails = ({
           <Ionicons name="location-outline" size={30} color="#000" />
         </View>
         <View style={styles.detail}>
-          <Text style={styles.title}>Assigned Location</Text>
+          <Text style={styles.title}>Assigned Assets</Text>
           <Text style={styles.details}>{userDetails.asset_name}</Text>
         </View>
       </View>
@@ -201,90 +204,90 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   userInfo: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#CFCACA',
+    borderBottomColor: "#CFCACA",
     borderRadius: 16,
     marginBottom: 20,
   },
   Image: {
     width: 80,
     height: 80,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: "#e0e0e0",
     borderRadius: 40,
     marginRight: 15,
   },
   Info: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   name: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
-    color: '#333',
+    color: "#333",
   },
   email: {
     fontSize: 16,
-    color: '#AEAEAE',
+    color: "#AEAEAE",
   },
 
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
-    color: '#333',
+    color: "#333",
   },
   details: {
     fontSize: 14,
-    color: '#000000',
+    color: "#000000",
   },
 
   locationContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#CFCACA',
+    borderBottomColor: "#CFCACA",
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   phoneNumber: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#CFCACA',
+    borderBottomColor: "#CFCACA",
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   SummaryContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#CFCACA',
+    borderBottomColor: "#CFCACA",
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   ActiveContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#CFCACA',
+    borderBottomColor: "#CFCACA",
     borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   icon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 10,
   },
 

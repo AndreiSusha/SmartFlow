@@ -7,6 +7,8 @@ import AssetCountry from "../screens/AssetManagement/AddAsset/AssetCountry";
 import AssetAddressDetails from "../screens/AssetManagement/AddAsset/AssetAddressDetails";
 import AssetAdditionalInfo from "../screens/AssetManagement/AddAsset/AssetAdditionalInfo";
 import { AssetDataProvider } from "../util/addAsset-context";
+import LocationChoiceScreen from "../screens/AssetManagement/AddAsset/LocationChoiceScreen";
+import SelectExistingLocationScreen from "../screens/AssetManagement/AddAsset/SelectExistingLocationScreen";
 
 const Stack = createStackNavigator();
 
@@ -41,6 +43,30 @@ const AddAssetNavigator = () => {
               elevation: Platform.OS === "android" ? 0 : undefined,
             },
             title: "Enter Asset Title",
+            headerBackTitle: "",
+          }}
+        />
+        <Stack.Screen
+          name="LocationChoice"
+          component={LocationChoiceScreen}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Choose Location",
+            headerBackTitle: "",
+          }}
+        />
+        <Stack.Screen
+          name="SelectExistingLocation"
+          component={SelectExistingLocationScreen}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Select Location",
             headerBackTitle: "",
           }}
         />

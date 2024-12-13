@@ -1,65 +1,64 @@
-// <<<<<<< HEAD
-// import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-// import React, { useEffect } from "react";
-// =======
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Text,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-// >>>>>>> 563c6c3e0c9725ea89834196e4ef02a472fcae90
+import React, { useEffect } from "react";
 import AssetCard from "../../components/assetManagement/AssetCard";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useToastStore } from "../../stores/toastStore";
-
-const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
+import { getAssets } from "../../api/AssetApi";
 
 const AssetManagement = () => {
-  const [assets, setAssets] = useState([]); // State to hold assets data
   const navigation = useNavigation();
   const route = useRoute();
-  const { showSuccessToast } = route.params || {};
+  const { showSuccessAddToast, showSuccessDeleteToast } = route.params || {};
   const { showToast } = useToastStore();
 
+
   useEffect(() => {
-    if (showSuccessToast) {
+    if (showSuccessAddToast) {
       showToast("Success!", "The asset was added successfully.", "success");
     }
-  }, [showSuccessToast]);
+  }, [showSuccessAddToast, showSuccessDeleteToast]);
 
-  // Fetch assets data from the backend API
-  useEffect(() => {
-    const fetchAssets = async () => {
-      try {
-        const response = await fetch(`${API_IP}api/assets`);
+  const {
+    data: assets,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["AssetsList"],
+    queryFn: () => getAssets(),
+  });
 
-        const data = await response.json();
-        setAssets(data);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-      }
-    };
+  if (isLoading) {
+    return <Text>Loading...</Text>;
+  }
 
-    fetchAssets();
-  }, []); // Empty dependency array ensures this runs once after the initial render
+  if (isError) {
+    return <Text>Error: {error.message}</Text>;
+  }
 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {assets.map((asset, index) => (
+        {assets.map((asset) => (
           <AssetCard
-            key={index}
+            key={asset.asset.id}
             title={asset.asset.name}
             address={asset.location.address}
             users={asset.usersAssigned}
+            onPress={() =>
+              navigation.navigate("AssetDetails", { id: asset.asset.id })
+            }
           />
         ))}
       </ScrollView>
-
       <TouchableOpacity
         style={styles.fab}
         onPress={() => navigation.navigate("AddAssetNavigator")}
@@ -86,6 +85,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
+  },
+  scrollContainer: {
+    paddingBottom: 30,
   },
 });
 

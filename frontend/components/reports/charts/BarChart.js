@@ -15,8 +15,10 @@ const BarChart = ({
   yearly_data,
   period,
   setPeriod,
+  unitName
 }) => {
-  const [unit, setUnit] = useState("kWh");
+  const [unit, setUnit] = useState(unitName);
+
   const font = useFont(require("../../../assets/fonts/Urbanist-Bold.ttf"), 11);
 
   const { state } = useChartPressState({
@@ -28,51 +30,50 @@ const BarChart = ({
   let xKey = "";
   let xTickCount = 0;
   let formatXLabel;
+  let tickValues = [];
 
-  switch (period) {
-    case "weekly":
-      data = weekly_data;
-      xKey = "day";
-      xTickCount = 7;
-      formatXLabel = (value) => {
-        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        return days[(value - 1) % 7];
-      };
-      break;
-    case "monthly":
-      data = monthly_data;
-      xKey = "weekIndex";
-      xTickCount = data.length;
-      const weekLabelMap = {};
-      data.forEach((item) => {
-        weekLabelMap[item.weekIndex] = item.weekLabel;
+  if (period === "last_week") {
+    data = weekly_data;
+
+    xKey = "date";
+    xTickCount = data.length;
+    formatXLabel = (value) => {
+      const date = new Date(value);
+      return date.toLocaleString("default", { weekday: "short" });
+    };
+    tickValues = data.map((d) => d[xKey]);
+  } else if (period === "last_3_months") {
+    data = monthly_data;
+    xKey = "date";
+    xTickCount = data.length;
+    formatXLabel = (value) => {
+      const date = new Date(value);
+      return date.toLocaleDateString("default", {
+        month: "numeric",
+        day: "numeric",
       });
-      formatXLabel = (value) => {
-        return value % 2 === 1 ? weekLabelMap[value] : "";
-      };
-      break;
-    case "yearly":
-      data = yearly_data;
-      xKey = "month";
-      xTickCount = 12;
-      formatXLabel = (value) => {
-        const date = new Date(0, value);
-        return date.toLocaleString("default", { month: "narrow" });
-      };
-      break;
-    default:
-      break;
+    };
+
+    tickValues = data.filter((_, index) => index % 2 === 0).map((d) => d[xKey]);
+  } else if (period === "past_year") {
+    data = yearly_data;
+    console.log("yearly_data: ", yearly_data);
+    xKey = "date";
+    xTickCount = data.length;
+    formatXLabel = (value) => {
+      const date = new Date(value);
+      return date.toLocaleString("default", { month: "narrow" });
+    };
+    tickValues = data.map((d) => d[xKey]);
   }
 
   const yKey = unit === "kWh" ? "kWh" : "cost";
-
-  const formatYLabel = (value) => {
-    return unit === "kWh" ? `${value.toFixed(0)}kWh` : `€${value.toFixed(2)}`;
-  };
+  const formatYLabel = (value) =>
+    unit === unitName ? `${value.toFixed(0)}` + unitName : `€${value.toFixed(2)}`;
 
   const activeXItem = useDerivedValue(() => {
     const xValue = state.x.value.value;
-    const index = data.findIndex((item) => item[xKey] === Math.round(xValue));
+    const index = data.findIndex((item) => item[xKey] === xValue);
     return index >= 0 ? index : null;
   });
 
@@ -118,14 +119,12 @@ const BarChart = ({
       : data.length - 1;
   const safeDisplayData = data.length > 0 ? data[safeDisplayIndex] : null;
 
-  const getHeaderTitle = (dataItem, period, isBarSelected) => {
-    if (!dataItem) {
-      return "";
-    }
+  const getHeaderTitle = (dataItem, currentPeriod, isBarSelected) => {
+    if (!dataItem) return "";
 
     if (isBarSelected) {
-      if (period === "weekly") {
-        const days = [
+      if (currentPeriod === "last_week") {
+        const daysFull = [
           "Sunday",
           "Monday",
           "Tuesday",
@@ -134,58 +133,73 @@ const BarChart = ({
           "Friday",
           "Saturday",
         ];
-        const dayIndex = dataItem[xKey] - 1;
-        const dayName = days[dayIndex % 7];
-        return dayName;
-      } else if (period === "monthly") {
-        const weeksAgo = data.length - dataItem[xKey];
+        const date = new Date(dataItem[xKey]);
+        return daysFull[date.getDay()];
+      } else if (currentPeriod === "last_3_months") {
+        const weeksAgo = data.length - safeDisplayIndex - 1;
+        console.log("dataItem", dataItem);
         if (weeksAgo === 0) return "This Week";
-        else if (weeksAgo === 1) return "Previous Week";
-        else return `${weeksAgo} Weeks Ago`;
-      } else if (period === "yearly") {
-        const date = new Date(0, dataItem[xKey]);
-        return date.toLocaleString("default", { month: "long" });
+        if (weeksAgo === 1) return "Previous Week";
+        return `${weeksAgo} Weeks Ago`;
+      } else if (currentPeriod === "past_year") {
+        const monthsFull = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        const date = new Date(dataItem[xKey]);
+        return monthsFull[date.getMonth()];
       }
     } else {
-      if (period === "weekly") {
+      if (currentPeriod === "last_week") {
         return "Today";
-      } else if (period === "monthly") {
+      } else if (currentPeriod === "last_3_months") {
         return "This Week";
-      } else if (period === "yearly") {
+      } else if (currentPeriod === "past_year") {
         const date = new Date(0, dataItem[xKey]);
         return date.toLocaleString("default", { month: "long" });
       }
     }
+
     return "";
   };
 
   return (
     <View style={[styles.block, { height: 450 }]}>
       <View style={styles.headerContainer}>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>
-              {getHeaderTitle(safeDisplayData, period, displayIndex !== null)}
-            </Text>
-            <Text style={styles.headerValue}>
-              {safeDisplayData ? safeDisplayData[yKey].toFixed(2) : "0.00"}{" "}
-              <Text style={styles.headerUnit}>{unit}</Text>
-            </Text>
-          </View>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>
+            {getHeaderTitle(safeDisplayData, period, displayIndex !== null)}
+          </Text>
+          <Text style={styles.headerValue}>
+            {safeDisplayData ? safeDisplayData[yKey].toFixed(2) : "0.00"}{" "}
+            <Text style={styles.headerUnit}>{unit}</Text>
+          </Text>
+        </View>
         <View style={[styles.customSwitch, { marginTop: 15 }]}>
           <TouchableOpacity
             style={[
               styles.switchOption,
-              unit === "kWh" && styles.activeSwitchOption,
+              unit === unitName && styles.activeSwitchOption,
             ]}
-            onPress={() => setUnit("kWh")}
+            onPress={() => setUnit(unitName)}
           >
             <Text
               style={[
                 styles.switchText,
-                unit === "kWh" && styles.activeSwitchText,
+                unit === unitName && styles.activeSwitchText,
               ]}
             >
-              kWh
+              {unitName}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -229,12 +243,12 @@ const BarChart = ({
           formatXLabel: formatXLabel,
           lineColor: "white",
           tickCount: xTickCount,
+          tickValues: tickValues,
         }}
       >
-        {({ points, chartBounds }) => {
-          return points[yKey].map((point, index) => {
+        {({ points, chartBounds }) =>
+          points[yKey].map((point, index) => {
             const isActiveBar = displayIndex === index;
-
             return (
               <Bar
                 key={index}
@@ -242,61 +256,61 @@ const BarChart = ({
                 chartBounds={chartBounds}
                 animate={{ type: "timing", duration: 1000 }}
                 barWidth={15}
-                roundedCorners={{
-                  topLeft: 4,
-                  topRight: 4,
-                }}
+                roundedCorners={{ topLeft: 4, topRight: 4 }}
                 color={isActiveBar ? "#A0C287" : "#53B6C7"}
               />
             );
-          });
-        }}
+          })
+        }
       </CartesianChart>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.button, period === "weekly" && styles.activeButton]}
+          style={[styles.button, period === "last_week" && styles.activeButton]}
           onPress={() => {
             state.x.value.value = 0;
-            setPeriod("weekly");
+            setPeriod("last_week");
           }}
         >
           <Text
             style={[
               styles.buttonText,
-              period === "weekly" && styles.activeButtonText,
+              period === "last_week" && styles.activeButtonText,
             ]}
           >
             Week
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, period === "monthly" && styles.activeButton]}
+          style={[
+            styles.button,
+            period === "last_3_months" && styles.activeButton,
+          ]}
           onPress={() => {
             state.x.value.value = 0;
-            setPeriod("monthly");
+            setPeriod("last_3_months");
           }}
         >
           <Text
             style={[
               styles.buttonText,
-              period === "monthly" && styles.activeButtonText,
+              period === "last_3_months" && styles.activeButtonText,
             ]}
           >
             Last 3 months
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, period === "yearly" && styles.activeButton]}
+          style={[styles.button, period === "past_year" && styles.activeButton]}
           onPress={() => {
             state.x.value.value = 0;
-            setPeriod("yearly");
+            setPeriod("past_year");
           }}
         >
           <Text
             style={[
               styles.buttonText,
-              period === "yearly" && styles.activeButtonText,
+              period === "past_year" && styles.activeButtonText,
             ]}
           >
             Year
@@ -333,11 +347,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-  },
-  headerLeft: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 5
   },
   headerTextContainer: {
     flex: 1,

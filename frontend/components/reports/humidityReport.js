@@ -2,7 +2,7 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 import ReportDetailsCard from './reportDetailsCard';
 import BarChart from './charts/BarChart';
 
-const TemperatureReport = ({ weekly_data, monthly_data, yearly_data, period, setPeriod, unit }) => {
+const HumidityReport = ({ weekly_data, monthly_data, yearly_data, period, setPeriod, unit }) => {
   let totalConsumption = 0;
   let totalCost = 0;
   let cardSubtitle = '';
@@ -54,4 +54,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TemperatureReport;
+export default HumidityReport;

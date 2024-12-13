@@ -12,14 +12,18 @@ import Input from "@components/Input";
 import { defaultStyles } from "@styles/defaultStyles";
 import { useNavigation } from "@react-navigation/native";
 import { AssetDataContext } from "../../../util/addAsset-context";
+import { useQuery } from "@tanstack/react-query";
+import { getLocations } from "../../../api/AssetApi";
 
 const AssetCountry = () => {
   const [assetCountry, setAssetCountry] = useState("");
   const navigation = useNavigation();
-  const { updateLocationData } = useContext(AssetDataContext);
+  const { setLocationChoice, updateNewLocationField } =
+    useContext(AssetDataContext);
 
   const handleContinue = () => {
-    updateLocationData("country", assetCountry);
+    setLocationChoice("new");
+    updateNewLocationField("country", assetCountry);
     navigation.navigate("AssetAddressDetails");
   };
 

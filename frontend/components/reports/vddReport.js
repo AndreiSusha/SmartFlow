@@ -2,7 +2,7 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 import ReportDetailsCard from './reportDetailsCard';
 import BarChart from './charts/BarChart';
 
-const TemperatureReport = ({ weekly_data, monthly_data, yearly_data, period, setPeriod, unit }) => {
+const VddReport = ({ weekly_data, monthly_data, yearly_data, period, setPeriod, unit }) => {
   let totalConsumption = 0;
   let totalCost = 0;
   let cardSubtitle = '';
@@ -37,6 +37,19 @@ const TemperatureReport = ({ weekly_data, monthly_data, yearly_data, period, set
         setPeriod={setPeriod}
         unitName={unit}
       />
+      <View style={styles.cardContainer}>
+        <ReportDetailsCard
+          cardName="Total Consumption"
+          cardNumber={totalConsumption.toFixed(0)}
+          cardUnit={unit}
+          cardSubtitle={cardSubtitle}
+        />
+        <ReportDetailsCard
+          cardName="Total Cost"
+          cardNumber={`€${totalCost.toFixed(0)}`}
+          cardSubtitle={cardSubtitle}
+        />
+      </View>
     </ScrollView>
   );
 };
@@ -54,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TemperatureReport;
+export default VddReport;

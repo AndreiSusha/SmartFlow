@@ -1,15 +1,15 @@
 // EditUser.js
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Alert } from 'react-native';
-import axios from 'axios';
-import { useUserContext } from '../../UserContext';
-import Input from '@components/Input';
-import Button from '@components/Button';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View, Alert } from "react-native";
+import axios from "axios";
+import { useUserContext } from "../../UserContext";
+import Input from "@components/Input";
+import Button from "@components/Button";
 
 const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const EditUser = ({ route, navigation }) => {
-  const { userDetails, setUserDetails } = useUserContext(); 
+  const { userDetails, setUserDetails } = useUserContext();
   const [userId, setUserId] = useState(null);
   const [username, setUsername] = useState(null);
   const [email, setEmail] = useState(null);
@@ -18,7 +18,7 @@ const EditUser = ({ route, navigation }) => {
   const [phone, setPhone] = useState(null);
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
   useEffect(() => {
-    if(!userDetails) return; 
+    if (!userDetails) return;
     setUserId(userDetails.id);
     setUsername(userDetails.username);
     setEmail(userDetails.email);
@@ -26,58 +26,34 @@ const EditUser = ({ route, navigation }) => {
     setSummary(userDetails.user_summary);
     setPhone(userDetails.phone_number);
     //setUserDetails(null);
-  },[userDetails])
-  
-  // const handleSave = async () => { 
-  //   try {
-  //     const response = await axios.put(`http://192.168.0.103:3000/user/${userId}`, {
-  //       username,
-  //       email,
-  //       asset_name: location,
-  //       // summary,
-  //       // phone
-  //     });
+  }, [userDetails]);
 
-  //     if (response.status === 200) {
-  //       Alert.alert('Success', 'User updated successfully');
-  //       navigation.goBack(); // Go back to UserDetails after update
-  //     }
-  //   } catch (error) {
-  //     console.error('Error updating user:', error);
-  //     Alert.alert('Error', 'Failed to update user');
-  //   }
-  // };
 
   const handleSave = async () => {
     try {
-
       const response = await axios.put(`${API_IP}user/${userId}`, {
-
         username,
         email,
         asset_name: location,
         user_summary: summary,
         phone_number: phone,
       });
-  
+
       if (response.status === 200) {
-        Alert.alert('Success', 'User updated successfully');
+        Alert.alert("Success", "User updated successfully");
         // Use goBack to return to the previous screen
-        navigation.goBack(); 
+        navigation.goBack();
       } else {
-        Alert.alert('Unexpected Response', `Status: ${response.status}`);
+        Alert.alert("Unexpected Response", `Status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Error updating user:', error);
-      Alert.alert('Error', 'Failed to update user');
+      console.error("Error updating user:", error);
+      Alert.alert("Error", "Failed to update user");
     }
   };
-  
-  
 
   return (
     <View style={styles.container}>
-
       <Input
         label="User Name"
         placeholder="User name"
@@ -90,7 +66,7 @@ const EditUser = ({ route, navigation }) => {
         value={email}
         onUpdateValue={setEmail}
       />
-      
+
       <Input
         label="Phone Number"
         placeholder="Phone number"
@@ -106,7 +82,7 @@ const EditUser = ({ route, navigation }) => {
 
       <View style={styles.buttonContainer}>
         {/* <Button title="Save" onPress={handleSave} /> */}
-        <Button onPress={handleSave} > Save</Button>
+        <Button onPress={handleSave}> Save</Button>
       </View>
     </View>
   );
@@ -118,17 +94,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-    color: '#333',
+    color: "#333",
   },
   input: {
     height: 40,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 20,

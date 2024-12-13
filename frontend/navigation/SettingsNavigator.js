@@ -4,18 +4,22 @@ import SettingsScreen from "../screens/SettingsScreen";
 import UserManagement from "../screens/UserManagmnet/UserManagemet";
 import UserDetails from "../screens/UserManagmnet/UserDetails";
 import AssetManagement from "../screens/AssetManagement/AssetManagement";
-import { Platform } from "react-native";
-import ChooseAssetType from "../screens/AssetManagement/AddAsset/ChooseAssetType";
-import { TouchableOpacity } from "react-native";
+import { Platform, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@components/bottomsheets/BottomSheet";
 import EditUser from "../screens/UserManagmnet/EditUser";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import ConfirmationModal from "@components/ConfirmationModal";
 import { useUserContext } from "../UserContext";
-import axios from 'axios';
+import axios from "axios";
+import AssetDetails from "../screens/AssetManagement/AssetDetails";
+import EditAsset from "../screens/AssetManagement/EditAsset";
+import AddNewUser from "../screens/AssetManagement/AddNewUser";
+
 
 const Stack = createStackNavigator();
+
+const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const SettingsNavigator = () => {
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
@@ -32,6 +36,7 @@ const SettingsNavigator = () => {
     setModalVisible(false);
   
     try {
+
       if (!userIdToDelete) {
         alert("User ID is missing. Cannot delete user.");
         setIsLoading(false);
@@ -70,7 +75,7 @@ const SettingsNavigator = () => {
       setIsLoading(false);
     }
   };
-  
+
 
   return (
     <>
@@ -131,7 +136,11 @@ const SettingsNavigator = () => {
                   style={{ marginRight: 5 }}
                   onPress={() => setBottomSheetVisible(true)}
                 >
-                  <Ionicons name="ellipsis-horizontal" size={24} color="#53B6C7" />
+                  <Ionicons
+                    name="ellipsis-horizontal"
+                    size={24}
+                    color="#53B6C7"
+                  />
                 </TouchableOpacity>
 
                 {/* BottomSheet Component */}
@@ -147,7 +156,7 @@ const SettingsNavigator = () => {
                     console.log("Selected option:", option);
                     if (option.value === "edit") {
                       setBottomSheetVisible(false);
-                        navigation.navigate("EditUser");
+                      navigation.navigate("EditUser");
                     } else if (option.value === "delete") {
                       setBottomSheetVisible(false);
                       const userId = navigation.getState().routes.find(r => r.name === "UserDetails")?.params?.userId;
@@ -160,7 +169,6 @@ const SettingsNavigator = () => {
                       }
                     }
                   }}
-  
                 />
               </>
             ),
@@ -178,7 +186,38 @@ const SettingsNavigator = () => {
             title: "Asset Management",
           }}
         />
-        
+        <Stack.Screen
+          name="AssetDetails"
+          component={AssetDetails}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+          }}
+        />
+        <Stack.Screen
+          name="EditAsset"
+          component={EditAsset}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Edit Asset",
+          }}
+        />
+        <Stack.Screen
+          name="AddNewUser"
+          component={AddNewUser}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Add new user",
+          }}
+        />
       </Stack.Navigator>
 
       {/* Render the ConfirmationModal outside of Stack.Navigator */}

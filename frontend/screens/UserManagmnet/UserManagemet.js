@@ -6,6 +6,7 @@ import {
   TextInput,
   ActivityIndicator,
   ScrollView,
+
 } from 'react-native';
 import axios from 'axios';
 import { UserCard } from '../../components/userManagmnet/UserCard';
@@ -16,7 +17,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 const UserManagement = () => {
   const [users, setUsers] = useState([]); // State for users
   const [loading, setLoading] = useState(true); // State for loading
-  const [search, setSearch] = useState(''); // State for search
+  const [search, setSearch] = useState(""); // State for search
   const navigation = useNavigation();
   const {  user } = useAuthStore();
 
@@ -90,7 +91,7 @@ const UserManagement = () => {
                 name={user.username}
                 branch={user.asset_name}
                 onPress={() =>
-                  navigation.navigate('UserDetails', { userId: user.id })
+                  navigation.navigate("UserDetails", { userId: user.id })
                 }
               />
             ))
@@ -107,24 +108,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   searchContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 10,
     padding: 10,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   searchInput: {
-    width: '100%',
+    width: "100%",
     padding: 10,
     borderRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginBottom: 10,
     height: 50,
     borderWidth: 1,
-    borderColor: '#ccc',
-    shadowColor: '#000',
+    borderColor: "#ccc",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

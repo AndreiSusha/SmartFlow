@@ -1,4 +1,3 @@
-// addAsset-context.js
 import React, { createContext, useState } from "react";
 
 export const AssetDataContext = createContext();
@@ -7,12 +6,14 @@ export const AssetDataProvider = ({ children }) => {
   const [assetData, setAssetData] = useState({
     assetName: "",
     assetTypeName: "",
-    location: {
+    additionalInformation: "",
+    locationChoice: "new", 
+    existingLocationId: null,
+    newLocation: {
       country: "",
       city: "",
       address: "",
       zipCode: "",
-      additionalInformation: "",
     },
   });
 
@@ -23,11 +24,32 @@ export const AssetDataProvider = ({ children }) => {
     }));
   };
 
-  const updateLocationData = (key, value) => {
+  const setLocationChoice = (choice) => {
     setAssetData((prevData) => ({
       ...prevData,
-      location: {
-        ...prevData.location,
+      locationChoice: choice,
+      existingLocationId: choice === "existing" ? prevData.existingLocationId : null,
+      newLocation: choice === "new" ? prevData.newLocation : {
+        country: "",
+        city: "",
+        address: "",
+        zipCode: "",
+      },
+    }));
+  };
+
+  const updateExistingLocationId = (id) => {
+    setAssetData((prevData) => ({
+      ...prevData,
+      existingLocationId: id,
+    }));
+  };
+
+  const updateNewLocationField = (key, value) => {
+    setAssetData((prevData) => ({
+      ...prevData,
+      newLocation: {
+        ...prevData.newLocation,
         [key]: value,
       },
     }));
@@ -35,7 +57,13 @@ export const AssetDataProvider = ({ children }) => {
 
   return (
     <AssetDataContext.Provider
-      value={{ assetData, updateAssetData, updateLocationData }}
+      value={{
+        assetData,
+        updateAssetData,
+        setLocationChoice,
+        updateExistingLocationId,
+        updateNewLocationField,
+      }}
     >
       {children}
     </AssetDataContext.Provider>

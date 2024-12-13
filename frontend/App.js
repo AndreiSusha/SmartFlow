@@ -1,4 +1,3 @@
-
 import React,{useEffect} from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -7,12 +6,10 @@ import AuthNavigator from "./navigation/AuthNavigator";
 import customFonts from "./config/fonts";
 import { useAuthStore } from "./stores/authStore";
 import ToastNotification from "./components/ToastNotification";
-
 import { UserProvider } from "./UserContext";
-import TabNavigator from "./navigation/TabNavigator";
-
 import AppNavigator from "./navigation/AppNavigator";
-
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./api/QueryClient";
 
 
 
@@ -36,12 +33,15 @@ const App = () => {
   }
   return (
     <>
-      <UserProvider>
-        <NavigationContainer>
-          {isAuthenticated ? <TabNavigator /> : <AuthNavigator />}
-        </NavigationContainer>
-        <ToastNotification />
-      </UserProvider>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
+          <NavigationContainer>
+            {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
+          </NavigationContainer>
+          <ToastNotification />
+        </UserProvider>
+      </QueryClientProvider>
+
     </>
   );
 };

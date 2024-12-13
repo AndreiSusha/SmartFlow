@@ -19,7 +19,7 @@ const AssetTitle = () => {
 
   const handleContinue = () => {
     updateAssetData("assetName", assetName);
-    navigation.navigate("AssetCountry");
+    navigation.navigate("LocationChoice");
   };
 
   return (
