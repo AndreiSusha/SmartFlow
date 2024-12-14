@@ -122,7 +122,7 @@ app.post('/api/login', async (req, res) => {
 //   const userId = req.query.user_id;
 
 //   const query = `
-//     SELECT 
+//     SELECT
 //       l.country,
 //       l.city,
 //       l.address,
@@ -162,7 +162,7 @@ app.post('/api/login', async (req, res) => {
 
 //   // Base query
 //   let query = `
-//     SELECT 
+//     SELECT
 //       l.country,
 //       l.city,
 //       l.address,
@@ -206,7 +206,6 @@ app.post('/api/login', async (req, res) => {
 //     res.status(500).json({ error: 'Failed to fetch data' });
 //   }
 // });
-
 
 const getRoleNameById = async (roleId) => {
   const roleQuery = 'SELECT role_name FROM roles WHERE id = ?';
@@ -295,7 +294,6 @@ app.get('/api/assets', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
-
 
 // API endpoint for the asset type
 app.get('/api/asset-types', async (req, res) => {
@@ -889,7 +887,6 @@ app.get('/api/measurement-report', async (req, res) => {
   }
 });
 
-
 app.get('/api/measurements/last-calendar-month', async (req, res) => {
   const { month } = req.query;
 
@@ -902,7 +899,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM temperature_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -912,7 +909,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM co2_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -922,7 +919,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM vdd_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -932,7 +929,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM humidity_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -950,6 +947,11 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
     const [co2Results] = await co2Promise;
     const [vddResults] = await vddPromise;
     const [humidityResults] = await humidityPromise;
+
+    // console.log('Temperature Results:', temperatureResults);
+    // console.log('CO2 Results:', co2Results);
+    // console.log('VDD Results:', vddResults);
+    // console.log('Humidity Results:', humidityResults);
 
     res.json({
       temperature: temperatureResults,
@@ -1441,11 +1443,19 @@ app.get('/measurements', async (req, res) => {
   const period = req.query.period;
   const metricType = req.query.metricType === 'total' ? 'total' : 'average';
 
-  console.log('Query Parameters:', measurementTable, assetId, period, metricType);
+  console.log(
+    'Query Parameters:',
+    measurementTable,
+    assetId,
+    period,
+    metricType
+  );
 
   // Validate input parameters
   if (!measurementTable || !assetId || !period) {
-    return res.status(400).json({ error: 'Missing required query parameters.' });
+    return res
+      .status(400)
+      .json({ error: 'Missing required query parameters.' });
   }
 
   // Allowed measurement tables to prevent SQL injection
@@ -1458,7 +1468,9 @@ app.get('/measurements', async (req, res) => {
   ];
 
   if (!allowedTables.includes(measurementTable)) {
-    return res.status(400).json({ error: 'Invalid measurement table specified.' });
+    return res
+      .status(400)
+      .json({ error: 'Invalid measurement table specified.' });
   }
 
   try {
@@ -1513,7 +1525,11 @@ app.get('/measurements', async (req, res) => {
       ORDER BY timestamp ASC
     `;
 
-    const [dataResults] = await pool.query(dataQuery, [assetId, startDateStr, endDateStr]);
+    const [dataResults] = await pool.query(dataQuery, [
+      assetId,
+      startDateStr,
+      endDateStr,
+    ]);
 
     if (dataResults.length === 0) {
       console.log('No measurements found within the specified date range.');
@@ -1524,11 +1540,26 @@ app.get('/measurements', async (req, res) => {
     let responseData = [];
 
     if (period === 'last_week') {
-      responseData = processDataByDay(dataResults, startDate, endDate, metricType);
+      responseData = processDataByDay(
+        dataResults,
+        startDate,
+        endDate,
+        metricType
+      );
     } else if (period === 'last_3_months') {
-      responseData = processDataByWeek(dataResults, startDate, endDate, metricType);
+      responseData = processDataByWeek(
+        dataResults,
+        startDate,
+        endDate,
+        metricType
+      );
     } else if (period === 'past_year') {
-      responseData = processDataByMonth(dataResults, startDate, endDate, metricType);
+      responseData = processDataByMonth(
+        dataResults,
+        startDate,
+        endDate,
+        metricType
+      );
     }
 
     res.json(responseData);
@@ -1537,9 +1568,6 @@ app.get('/measurements', async (req, res) => {
     res.status(500).json({ error: 'Database query error.' });
   }
 });
-
-
-
 
 // Function to process data by day for 'last_week'
 function processDataByDay(results, startDate, endDate, metricType) {
@@ -1588,13 +1616,15 @@ function processDataByDay(results, startDate, endDate, metricType) {
       const totalValue = values.length ? sum : null;
       responseData.push({
         date: dateStr,
-        averageValue: totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
+        averageValue:
+          totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
       });
     } else {
       const averageValue = values.length ? sum / values.length : null;
       responseData.push({
         date: dateStr,
-        averageValue: averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+        averageValue:
+          averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
       });
     }
   });
@@ -1635,7 +1665,7 @@ function processDataByWeek(results, startDate, endDate, metricType) {
   let current = new Date(startDate);
   // Align 'current' to the start of the week (Monday)
   const day = current.getDay();
-  const diff = day === 0 ? 6 : day - 1; 
+  const diff = day === 0 ? 6 : day - 1;
   current.setDate(current.getDate() - diff);
 
   while (current <= endDate) {
@@ -1659,13 +1689,15 @@ function processDataByWeek(results, startDate, endDate, metricType) {
       const totalValue = values.length ? sum : null;
       responseData.push({
         date: weekStartDates[weekKey],
-        averageValue: totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
+        averageValue:
+          totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
       });
     } else {
       const averageValue = values.length ? sum / values.length : null;
       responseData.push({
         date: weekStartDates[weekKey],
-        averageValue: averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+        averageValue:
+          averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
       });
     }
   });
@@ -1681,7 +1713,8 @@ function processDataByMonth(results, startDate, endDate, metricType) {
   results.forEach((row) => {
     const date = new Date(row.timestamp);
     const monthKey = `${date.getFullYear()}-${(
-      '0' + (date.getMonth() + 1)
+      '0' +
+      (date.getMonth() + 1)
     ).slice(-2)}`; // 'YYYY-MM'
 
     if (!dataByMonth[monthKey]) {
@@ -1696,7 +1729,8 @@ function processDataByMonth(results, startDate, endDate, metricType) {
   current.setDate(1); // Set to first day of month
   while (current <= endDate) {
     const monthKey = `${current.getFullYear()}-${(
-      '0' + (current.getMonth() + 1)
+      '0' +
+      (current.getMonth() + 1)
     ).slice(-2)}`;
     monthKeysInRange.push(monthKey);
     current.setMonth(current.getMonth() + 1); // Move to next month
@@ -1724,7 +1758,7 @@ function processDataByMonth(results, startDate, endDate, metricType) {
     }
   });
 
-  return responseData;
+  return responseData;
 }
 
 // Start the server
