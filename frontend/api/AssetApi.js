@@ -1,12 +1,15 @@
 import api from "./axiosInstance";
 
-
-export const getAssets = async () => {
+export const getAssets = async (userId) => {
   const endpoint = `api/assets`;
   const fullURL = `${process.env.EXPO_PUBLIC_API_BASE_URL}${endpoint}`;
   console.log(`Fetching assets from: ${fullURL}`);
 
-  const { data } = await api.get(endpoint);
+  if (!userId) {
+    throw new Error("User ID is required to fetch assets.");
+  }
+
+  const { data } = await api.get(`${endpoint}?user_id=${userId}`);
   return data;
 };
 

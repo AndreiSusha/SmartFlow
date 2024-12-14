@@ -22,7 +22,6 @@ const LoginScreen = () => {
 
     try {
       await useAuthStore.getState().login(email, password);
-      navigation.navigate("Home");
     } catch (error) {
       console.error(error);
       showToast("Login Failed", "Please try again.", "error", 3000);

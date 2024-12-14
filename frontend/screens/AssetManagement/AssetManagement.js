@@ -12,13 +12,14 @@ import { useToastStore } from "../../stores/toastStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { getAssets } from "../../api/AssetApi";
+import { useAuthStore } from "../../stores/authStore";
 
 const AssetManagement = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { showSuccessAddToast, showSuccessDeleteToast } = route.params || {};
   const { showToast } = useToastStore();
-
+  const { user } = useAuthStore();
 
   useEffect(() => {
     if (showSuccessAddToast) {
@@ -33,8 +34,9 @@ const AssetManagement = () => {
     error,
   } = useQuery({
     queryKey: ["AssetsList"],
-    queryFn: () => getAssets(),
+    queryFn: () => getAssets(user.user_id),
   });
+
 
   if (isLoading) {
     return <Text>Loading...</Text>;
