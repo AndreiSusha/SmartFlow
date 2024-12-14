@@ -8,6 +8,9 @@ export const useAuthStore = create((set) => ({
   loading: false,
   isAdmin: false,
   user: null,
+  chosenAssetId: null,
+
+  setChosenAssetId: (id) => set({ chosenAssetId: id }),
 
   login: async (email, password) => {
     set({ loading: true });
@@ -28,6 +31,7 @@ export const useAuthStore = create((set) => ({
       }
 
       const userData = {
+        user_id: data.id,
         name: data.username,
         email: data.email,
         customer: data.customer_id,
@@ -53,7 +57,7 @@ export const useAuthStore = create((set) => ({
   logout: async () => {
     await AsyncStorage.removeItem('isAuthenticated');
     await AsyncStorage.removeItem('user');
-    set({ isAuthenticated: false, user: null, isAdmin: false });
+    set({ isAuthenticated: false, user: null, isAdmin: false, chosenAssetId: null });
   },
 
   loadAuthState: async () => {

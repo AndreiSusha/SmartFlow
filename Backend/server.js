@@ -117,24 +117,166 @@ app.post('/api/login', async (req, res) => {
 });
 
 // API endpoint to see the assets
+// app.get('/api/assets', async (req, res) => {
+
+//   const userId = req.query.user_id;
+
+//   const query = `
+//     SELECT 
+//       l.country,
+//       l.city,
+//       l.address,
+//       a.id AS asset_id,
+//       a.name AS asset_name,
+//       COUNT(DISTINCT ua.user_id) AS users_assigned
+//     FROM locations l
+//     INNER JOIN assets a ON l.id = a.location_id
+//     LEFT JOIN user_assets ua ON a.id = ua.asset_id
+//     GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
+//   `;
+
+//   try {
+//     const [results] = await pool.query(query); // Execute the query
+
+//     const formattedResults = results.map((row) => ({
+//       location: {
+//         name: `${row.country}, ${row.city}`,
+//         address: row.address,
+//       },
+//       asset: {
+//         id: row.asset_id,
+//         name: row.asset_name,
+//       },
+//       usersAssigned: row.users_assigned,
+//     }));
+
+//     res.json(formattedResults); // Send the formatted response
+//   } catch (err) {
+//     console.error('Error fetching locations data:', err);
+//     res.status(500).json({ error: 'Failed to fetch data' });
+//   }
+// });
+
+// app.get('/api/assets', async (req, res) => {
+//   const userId = req.query.user_id; // Retrieve user_id from query parameters
+
+//   // Base query
+//   let query = `
+//     SELECT 
+//       l.country,
+//       l.city,
+//       l.address,
+//       a.id AS asset_id,
+//       a.name AS asset_name,
+//       COUNT(DISTINCT ua.user_id) AS users_assigned
+//     FROM locations l
+//     INNER JOIN assets a ON l.id = a.location_id
+//     LEFT JOIN user_assets ua ON a.id = ua.asset_id
+//   `;
+
+//   // If user_id is provided, add a WHERE clause to filter assets assigned to that user
+//   if (userId) {
+//     query += ` WHERE ua.user_id = ? `;
+//   }
+
+//   query += `
+//     GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
+//   `;
+
+//   try {
+//     const [results] = userId
+//       ? await pool.query(query, [userId]) // Parameterized query to prevent SQL injection
+//       : await pool.query(query); // Execute the query without parameters if no user_id
+
+//     const formattedResults = results.map((row) => ({
+//       location: {
+//         name: `${row.country}, ${row.city}`,
+//         address: row.address,
+//       },
+//       asset: {
+//         id: row.asset_id,
+//         name: row.asset_name,
+//       },
+//       usersAssigned: row.users_assigned,
+//     }));
+
+//     res.json(formattedResults);
+//   } catch (err) {
+//     console.error('Error fetching assets data:', err);
+//     res.status(500).json({ error: 'Failed to fetch data' });
+//   }
+// });
+
+
+const getRoleNameById = async (roleId) => {
+  const roleQuery = 'SELECT role_name FROM roles WHERE id = ?';
+  const [roleResult] = await pool.query(roleQuery, [roleId]);
+  return roleResult.length > 0 ? roleResult[0].role_name : null;
+};
+
 app.get('/api/assets', async (req, res) => {
-  const query = `
-    SELECT 
-      l.country,
-      l.city,
-      l.address,
-      a.id AS asset_id,
-      a.name AS asset_name,
-      COUNT(DISTINCT ua.user_id) AS users_assigned
-    FROM locations l
-    INNER JOIN assets a ON l.id = a.location_id
-    LEFT JOIN user_assets ua ON a.id = ua.asset_id
-    GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
-  `;
+  const userId = req.query.user_id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
 
   try {
-    const [results] = await pool.query(query); // Execute the query
+    // Step 1: Retrieve the user's role and customer_id
+    const userQuery = 'SELECT role_id, customer_id FROM users WHERE id = ?';
+    const [userResults] = await pool.query(userQuery, [userId]);
 
+    if (userResults.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { role_id, customer_id } = userResults[0];
+    const roleName = await getRoleNameById(role_id);
+
+    if (!roleName) {
+      return res.status(500).json({ error: 'User role not found' });
+    }
+
+    // Step 2: Construct the SQL query based on the user's role
+    let query = `
+      SELECT 
+        l.country,
+        l.city,
+        l.address,
+        a.id AS asset_id,
+        a.name AS asset_name,
+        COUNT(DISTINCT ua.user_id) AS users_assigned
+      FROM locations l
+      INNER JOIN assets a ON l.id = a.location_id
+      LEFT JOIN user_assets ua ON a.id = ua.asset_id
+      INNER JOIN customers c ON l.customer_id = c.id
+    `;
+
+    // Parameters for the SQL query
+    const queryParams = [];
+
+    if (roleName.toLowerCase() === 'admin') {
+      // Admin users: Fetch all assets for their customer_id
+      query += ` WHERE c.id = ? `;
+      queryParams.push(customer_id);
+    } else {
+      // Non-admin users: Fetch only assets assigned to them
+      query += `
+        INNER JOIN user_assets assigned_ua ON a.id = assigned_ua.asset_id
+        WHERE assigned_ua.user_id = ?
+      `;
+      queryParams.push(userId);
+    }
+
+    query += `
+      GROUP BY l.id, l.country, l.city, l.address, a.id, a.name
+      ORDER BY l.country, l.city, a.name;
+    `;
+
+    // Step 3: Execute the query with appropriate parameters
+    const [results] = await pool.query(query, queryParams);
+
+    // Step 4: Format the results
     const formattedResults = results.map((row) => ({
       location: {
         name: `${row.country}, ${row.city}`,
@@ -147,12 +289,13 @@ app.get('/api/assets', async (req, res) => {
       usersAssigned: row.users_assigned,
     }));
 
-    res.json(formattedResults); // Send the formatted response
+    res.json(formattedResults);
   } catch (err) {
-    console.error('Error fetching locations data:', err);
+    console.error('Error fetching assets data:', err);
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
+
 
 // API endpoint for the asset type
 app.get('/api/asset-types', async (req, res) => {
@@ -1180,6 +1323,118 @@ app.get('/api/measurements', async (req, res) => {
   }
 });
 
+// app.get('/measurements', async (req, res) => {
+//   const measurementTable = req.query.measurementTable;
+//   const assetId = req.query.assetId;
+//   const period = req.query.period;
+//   const metricType = req.query.metricType === 'total' ? 'total' : 'average';
+
+//   console.log('Query Parameters:', measurementTable, assetId, period, metricType);
+
+//   // Validate input parameters
+//   if (!measurementTable || !assetId || !period) {
+//     return res
+//       .status(400)
+//       .json({ error: 'Missing required query parameters.' });
+//   }
+
+//   // Allowed measurement tables to prevent SQL injection
+//   const allowedTables = [
+//     'co2_measurements',
+//     'humidity_measurements',
+//     'light_measurements',
+//     'temperature_measurements',
+//     'vdd_measurements',
+//     // Add other measurement tables as needed
+//   ];
+
+//   if (!allowedTables.includes(measurementTable)) {
+//     return res
+//       .status(400)
+//       .json({ error: 'Invalid measurement table specified.' });
+//   }
+
+//   try {
+//     const idColumn = 'asset_id'; // Use 'asset_id' as per your table schema
+
+//     // First, find the latest timestamp in the measurement table for the given assetId
+//     const latestDateQuery = `
+//       SELECT MAX(timestamp) AS latestTimestamp
+//       FROM ${measurementTable}
+//       WHERE ${idColumn} = ?
+//     `;
+
+//     const [latestDateResult] = await pool.query(latestDateQuery, [assetId]);
+
+//     if (!latestDateResult || !latestDateResult[0].latestTimestamp) {
+//       return res
+//         .status(404)
+//         .json({ error: 'No data found for the given assetId.' });
+//     }
+
+//     const latestTimestamp = new Date(latestDateResult[0].latestTimestamp);
+//     console.log('Latest Timestamp from Database:', latestTimestamp);
+//     console.log('Latest Timestamp (ISOString):', latestTimestamp.toISOString());
+
+//     const currentDate = latestTimestamp;
+
+//     // Define the date range based on the period
+//     let startDate;
+//     let endDate = currentDate;
+
+//     if (period === 'last_week') {
+//       // Set startDate to 6 days before currentDate
+//       startDate = new Date(latestTimestamp.getTime() - 6 * 24 * 60 * 60 * 1000);
+//     } else if (period === 'last_3_months') {
+//       startDate = new Date(currentDate);
+//       startDate.setMonth(currentDate.getMonth() - 2); // Include the current month and two previous months
+//       startDate.setDate(1); // Start from the first day of the month
+//     } else if (period === 'past_year') {
+//       startDate = new Date(currentDate);
+//       startDate.setFullYear(currentDate.getFullYear() - 1); // One year back from currentDate
+//     } else {
+//       return res.status(400).json({ error: 'Invalid period specified.' });
+//     }
+
+//     const startDateStr = startDate.toISOString().slice(0, 19).replace('T', ' ');
+//     const endDateStr = endDate.toISOString().slice(0, 19).replace('T', ' ');
+
+//     console.log('Start Date:', startDateStr);
+//     console.log('End Date:', endDateStr);
+
+//     // Construct the SQL query
+//     const dataQuery = `
+//       SELECT id, timestamp, value, ${idColumn}
+//       FROM ${measurementTable}
+//       WHERE ${idColumn} = ? AND timestamp BETWEEN ? AND ?
+//       ORDER BY timestamp ASC
+//     `;
+
+//     const [dataResults] = await pool.query(dataQuery, [
+//       assetId,
+//       startDateStr,
+//       endDateStr,
+//     ]);
+
+//     // Process the results to match the required data format for charts
+//     let responseData = [];
+
+//     // Data aggregation based on the period
+//     if (period === 'last_week') {
+//       responseData = processDataByDay(dataResults, startDate, endDate, metricType);
+//     } else if (period === 'last_3_months') {
+//       responseData = processDataByWeek(dataResults, startDate, endDate, metricType);
+//     } else if (period === 'past_year') {
+//       responseData = processDataByMonth(dataResults, startDate, endDate, metricType);
+//     }
+
+//     res.json(responseData);
+//   } catch (err) {
+//     console.error('Error fetching measurements:', err);
+//     res.status(500).json({ error: 'Database query error.' });
+//   }
+// });
+
 app.get('/measurements', async (req, res) => {
   const measurementTable = req.query.measurementTable;
   const assetId = req.query.assetId;
@@ -1190,9 +1445,7 @@ app.get('/measurements', async (req, res) => {
 
   // Validate input parameters
   if (!measurementTable || !assetId || !period) {
-    return res
-      .status(400)
-      .json({ error: 'Missing required query parameters.' });
+    return res.status(400).json({ error: 'Missing required query parameters.' });
   }
 
   // Allowed measurement tables to prevent SQL injection
@@ -1202,19 +1455,16 @@ app.get('/measurements', async (req, res) => {
     'light_measurements',
     'temperature_measurements',
     'vdd_measurements',
-    // Add other measurement tables as needed
   ];
 
   if (!allowedTables.includes(measurementTable)) {
-    return res
-      .status(400)
-      .json({ error: 'Invalid measurement table specified.' });
+    return res.status(400).json({ error: 'Invalid measurement table specified.' });
   }
 
   try {
-    const idColumn = 'asset_id'; // Use 'asset_id' as per your table schema
+    const idColumn = 'asset_id';
 
-    // First, find the latest timestamp in the measurement table for the given assetId
+    // Find the latest timestamp in the measurement table for the given assetId
     const latestDateQuery = `
       SELECT MAX(timestamp) AS latestTimestamp
       FROM ${measurementTable}
@@ -1223,16 +1473,13 @@ app.get('/measurements', async (req, res) => {
 
     const [latestDateResult] = await pool.query(latestDateQuery, [assetId]);
 
+    // Handle case where no data exists for the given assetId
     if (!latestDateResult || !latestDateResult[0].latestTimestamp) {
-      return res
-        .status(404)
-        .json({ error: 'No data found for the given assetId.' });
+      console.log('No data found for the given assetId or table.');
+      return res.json([]); // Return an empty array instead of 404
     }
 
     const latestTimestamp = new Date(latestDateResult[0].latestTimestamp);
-    console.log('Latest Timestamp from Database:', latestTimestamp);
-    console.log('Latest Timestamp (ISOString):', latestTimestamp.toISOString());
-
     const currentDate = latestTimestamp;
 
     // Define the date range based on the period
@@ -1240,15 +1487,14 @@ app.get('/measurements', async (req, res) => {
     let endDate = currentDate;
 
     if (period === 'last_week') {
-      // Set startDate to 6 days before currentDate
       startDate = new Date(latestTimestamp.getTime() - 6 * 24 * 60 * 60 * 1000);
     } else if (period === 'last_3_months') {
       startDate = new Date(currentDate);
-      startDate.setMonth(currentDate.getMonth() - 2); // Include the current month and two previous months
-      startDate.setDate(1); // Start from the first day of the month
+      startDate.setMonth(currentDate.getMonth() - 2);
+      startDate.setDate(1);
     } else if (period === 'past_year') {
       startDate = new Date(currentDate);
-      startDate.setFullYear(currentDate.getFullYear() - 1); // One year back from currentDate
+      startDate.setFullYear(currentDate.getFullYear() - 1);
     } else {
       return res.status(400).json({ error: 'Invalid period specified.' });
     }
@@ -1259,7 +1505,7 @@ app.get('/measurements', async (req, res) => {
     console.log('Start Date:', startDateStr);
     console.log('End Date:', endDateStr);
 
-    // Construct the SQL query
+    // Fetch data within the date range
     const dataQuery = `
       SELECT id, timestamp, value, ${idColumn}
       FROM ${measurementTable}
@@ -1267,16 +1513,16 @@ app.get('/measurements', async (req, res) => {
       ORDER BY timestamp ASC
     `;
 
-    const [dataResults] = await pool.query(dataQuery, [
-      assetId,
-      startDateStr,
-      endDateStr,
-    ]);
+    const [dataResults] = await pool.query(dataQuery, [assetId, startDateStr, endDateStr]);
 
-    // Process the results to match the required data format for charts
+    if (dataResults.length === 0) {
+      console.log('No measurements found within the specified date range.');
+      return res.json([]); // Return an empty array
+    }
+
+    // Process the results for the required chart format
     let responseData = [];
 
-    // Data aggregation based on the period
     if (period === 'last_week') {
       responseData = processDataByDay(dataResults, startDate, endDate, metricType);
     } else if (period === 'last_3_months') {
@@ -1291,6 +1537,9 @@ app.get('/measurements', async (req, res) => {
     res.status(500).json({ error: 'Database query error.' });
   }
 });
+
+
+
 
 // Function to process data by day for 'last_week'
 function processDataByDay(results, startDate, endDate, metricType) {
