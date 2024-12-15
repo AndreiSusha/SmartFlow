@@ -16,6 +16,7 @@ import AssetDetails from "../screens/AssetManagement/AssetDetails";
 import EditAsset from "../screens/AssetManagement/EditAsset";
 import AddNewUser from "../screens/AssetManagement/AddNewUser";
 import { useAuthStore } from "../stores/authStore";
+import { useToastStore } from "../stores/toastStore";
 
 const Stack = createStackNavigator();
 
@@ -28,7 +29,7 @@ const SettingsNavigator = () => {
   const { removeUser } = useUserContext();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-  const { showToast } = useAuthStore();
+  const { showToast } = useToastStore();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
