@@ -6,10 +6,12 @@ import LightReport from "../../components/reports/lightReport";
 import TemperatureReport from "../../components/reports/temperatureReport";
 import VddReport from "../../components/reports/vddReport";
 import { useNavigation } from "@react-navigation/native";
-import { Platform } from "react-native";
+import { Platform, StyleSheet, View, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { getReportDetails } from "../../api/ReportsApi";
 import { MEASUREMENT_CONFIG } from "../../constants/measurementTypes";
+import { useAuthStore } from "../../stores/authStore";
 
 const REPORT_COMPONENTS = {
   co2_measurements: Co2Report,
@@ -17,18 +19,19 @@ const REPORT_COMPONENTS = {
   light_measurements: LightReport,
   temperature_measurements: TemperatureReport,
   vdd_measurements: VddReport,
-  electricity_measurements: ElectricityReport,
 };
 
 const ReportDetails = ({ route }) => {
   const navigation = useNavigation();
-  const { measurementType, unit } = route.params;
+  const { measurementType, unit, aggrType } = route.params;
+  const { chosenAssetId } = useAuthStore();
 
   const [period, setPeriod] = useState("last_week");
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["ReportDetails", measurementType, period],
-    queryFn: () => getReportDetails(3, measurementType, period),
+    queryFn: () =>
+      getReportDetails(chosenAssetId, measurementType, period, aggrType),
     enabled: !!measurementType,
   });
 
@@ -42,28 +45,25 @@ const ReportDetails = ({ route }) => {
 
   const ReportComponent = REPORT_COMPONENTS[measurementType];
 
-
   if (data && Array.isArray(data)) {
     if (period === "last_week") {
       weekly_data = data.map((item) => ({
         date: new Date(item.date).getTime(),
-        kWh: item.averageValue,
+        value: item.averageValue,
         cost: item.averageValue * 0.2,
       }));
     } else if (period === "last_3_months") {
       monthly_data = data.map((item) => ({
         date: new Date(item.date).getTime(),
-        kWh: item.averageValue || 0,
+        value: item.averageValue || 0,
         cost: (item.averageValue || 0) * 0.2,
       }));
-      console.log("monthly_data: ", monthly_data);
     } else if (period === "past_year") {
       yearly_data = data.map((item) => ({
         date: new Date(item.monthLabel).getTime(),
-        kWh: item.averageValue || 0,
+        value: item.averageValue || 0,
         cost: (item.averageValue || 0) * 0.2,
       }));
-      console.log("yearly_data: ", yearly_data);
     }
   }
 
@@ -81,11 +81,19 @@ const ReportDetails = ({ route }) => {
   }, [navigation, config.title]);
 
   if (isLoading) {
-    return null;
+    return <Text>Loading...</Text>;
   }
 
-  if (isError) {
-    return <Text>Error: {error.message}</Text>;
+  if (!data || data.length === 0 || isError) {
+    return (
+      <View style={styles.noDataContainer}>
+        <Ionicons name="document-text-outline" size={64} color="#A0A0A0" />
+        <Text style={styles.noDataText}>No Data Available</Text>
+        <Text style={styles.noDataSubText}>
+          Check back later, or try a different asset.
+        </Text>
+      </View>
+    );
   }
 
   return (
@@ -96,8 +104,31 @@ const ReportDetails = ({ route }) => {
       period={period}
       setPeriod={setPeriod}
       unit={unit}
+      aggrType={aggrType}
     />
   );
 };
 
 export default ReportDetails;
+
+const styles = StyleSheet.create({
+  noDataContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  noDataText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginTop: 10,
+  },
+  noDataSubText: {
+    fontSize: 14,
+    color: "#777",
+    marginTop: 5,
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+});

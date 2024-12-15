@@ -1,34 +1,35 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-import ReportsScreen from '../screens/Reports/ReportsScreen';
-import HomeScreen from '../screens/HomeScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import Test from '../screens/test';
-import ReportsNavigator from './ReportsNavigator';
-import SettingsNavigator from './SettingsNavigator';
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
+import ReportsScreen from "../screens/Reports/ReportsScreen";
+import HomeScreen from "../screens/HomeScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import Test from "../screens/test";
+import ReportsNavigator from "./ReportsNavigator";
+import SettingsNavigator from "./SettingsNavigator";
 
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => (
   <Tab.Navigator
+  initialRouteName="Home"
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
-        if (route.name === 'Reports') {
-          iconName = focused ? 'clipboard' : 'clipboard-outline';
-        } else if (route.name === 'Home') {
-          iconName = focused ? 'home' : 'home-outline';
-        } else if (route.name === 'Settings') {
-          iconName = focused ? 'settings' : 'settings-outline';
+        if (route.name === "Reports") {
+          iconName = focused ? "clipboard" : "clipboard-outline";
+        } else if (route.name === "Home") {
+          iconName = focused ? "home" : "home-outline";
+        } else if (route.name === "Settings") {
+          iconName = focused ? "settings" : "settings-outline";
         }
         // else if (route.name === 'Test') {
         //   iconName = focused ? 'Test' : 'settings-outline';
         // }
         return <Ionicons name={iconName} size={size} color={color} />;
       },
-      tabBarActiveTintColor: '#53B6C7',
-      tabBarInactiveTintColor: '#000000',
+      tabBarActiveTintColor: "#53B6C7",
+      tabBarInactiveTintColor: "#000000",
       headerShown: false,
     })}
   >
@@ -40,8 +41,9 @@ const TabNavigator = () => (
     <Tab.Screen
       name="Home"
       component={HomeScreen}
-      options={{ headerShown: true, headerTintColor: '#53B6C7' }}
+      options={{ headerShown: true, headerTintColor: "#53B6C7" }}
     />
+
     <Tab.Screen name="Settings" component={SettingsNavigator} />
 
     {/* <Tab.Screen name="Test" component={Test} /> */}

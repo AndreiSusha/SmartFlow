@@ -9,6 +9,7 @@ const LightReport = ({
   period,
   setPeriod,
   unit,
+  aggrType,
 }) => {
   let totalConsumption = 0;
   let totalCost = 0;
@@ -16,17 +17,17 @@ const LightReport = ({
 
   switch (period) {
     case "last_week":
-      totalConsumption = weekly_data.reduce((sum, item) => sum + item.kWh, 0);
+      totalConsumption = weekly_data.reduce((sum, item) => sum + item.value, 0);
       totalCost = weekly_data.reduce((sum, item) => sum + item.cost, 0);
       cardSubtitle = "This Week";
       break;
     case "last_3_months":
-      totalConsumption = monthly_data.reduce((sum, item) => sum + item.kWh, 0);
+      totalConsumption = monthly_data.reduce((sum, item) => sum + item.value, 0);
       totalCost = monthly_data.reduce((sum, item) => sum + item.cost, 0);
       cardSubtitle = "Last 3 months";
       break;
     case "past_year":
-      totalConsumption = yearly_data.reduce((sum, item) => sum + item.kWh, 0);
+      totalConsumption = yearly_data.reduce((sum, item) => sum + item.value, 0);
       totalCost = yearly_data.reduce((sum, item) => sum + item.cost, 0);
       cardSubtitle = "This Year";
       break;
@@ -43,6 +44,7 @@ const LightReport = ({
         period={period}
         setPeriod={setPeriod}
         unitName={unit}
+        aggrType={aggrType}
       />
     </ScrollView>
   );

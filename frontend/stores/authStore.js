@@ -1,11 +1,16 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
+
 export const useAuthStore = create((set) => ({
   isAuthenticated: false,
   loading: false,
   isAdmin: false,
   user: null,
+  chosenAssetId: null,
+
+  setChosenAssetId: (id) => set({ chosenAssetId: id }),
 
   login: async (email, password) => {
     set({ loading: true });
@@ -16,28 +21,31 @@ export const useAuthStore = create((set) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
+
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
 
-      const data = await response.json();
+      const userData = {
+        user_id: data.id,
+        name: data.username,
+        email: data.email,
+        customer: data.customer_id,
+        role_id: data.role_id,
+      };
+
       set({
         isAdmin: data.role_id === 1,
-        user: {
-          name: data.username,
-          email: data.email,
-          customer: data.customer_id,
-        },
+        user: userData,
+        isAuthenticated: true,
       });
 
       await AsyncStorage.setItem('isAuthenticated', 'true');
-      set({ isAuthenticated: true });
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
     } catch (error) {
       console.error('Login error:', error);
       throw new Error('Login failed. Please try again.');
@@ -48,12 +56,24 @@ export const useAuthStore = create((set) => ({
 
   logout: async () => {
     await AsyncStorage.removeItem('isAuthenticated');
-    set({ isAuthenticated: false, user: null });
+    await AsyncStorage.removeItem('user');
+    set({ isAuthenticated: false, user: null, isAdmin: false, chosenAssetId: null });
   },
 
   loadAuthState: async () => {
     const authState = await AsyncStorage.getItem('isAuthenticated');
-    set({ isAuthenticated: authState === 'true' });
+    const userJson = await AsyncStorage.getItem('user');
+
+    if (authState === 'true' && userJson) {
+      const restoredUser = JSON.parse(userJson);
+      set({
+        isAuthenticated: true,
+        user: restoredUser,
+        isAdmin: restoredUser.role_id === 1,
+      });
+    } else {
+      set({ isAuthenticated: false, user: null, isAdmin: false });
+    }
   },
 }));
 

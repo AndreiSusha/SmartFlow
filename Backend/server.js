@@ -117,24 +117,165 @@ app.post('/api/login', async (req, res) => {
 });
 
 // API endpoint to see the assets
+// app.get('/api/assets', async (req, res) => {
+
+//   const userId = req.query.user_id;
+
+//   const query = `
+//     SELECT
+//       l.country,
+//       l.city,
+//       l.address,
+//       a.id AS asset_id,
+//       a.name AS asset_name,
+//       COUNT(DISTINCT ua.user_id) AS users_assigned
+//     FROM locations l
+//     INNER JOIN assets a ON l.id = a.location_id
+//     LEFT JOIN user_assets ua ON a.id = ua.asset_id
+//     GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
+//   `;
+
+//   try {
+//     const [results] = await pool.query(query); // Execute the query
+
+//     const formattedResults = results.map((row) => ({
+//       location: {
+//         name: `${row.country}, ${row.city}`,
+//         address: row.address,
+//       },
+//       asset: {
+//         id: row.asset_id,
+//         name: row.asset_name,
+//       },
+//       usersAssigned: row.users_assigned,
+//     }));
+
+//     res.json(formattedResults); // Send the formatted response
+//   } catch (err) {
+//     console.error('Error fetching locations data:', err);
+//     res.status(500).json({ error: 'Failed to fetch data' });
+//   }
+// });
+
+// app.get('/api/assets', async (req, res) => {
+//   const userId = req.query.user_id; // Retrieve user_id from query parameters
+
+//   // Base query
+//   let query = `
+//     SELECT
+//       l.country,
+//       l.city,
+//       l.address,
+//       a.id AS asset_id,
+//       a.name AS asset_name,
+//       COUNT(DISTINCT ua.user_id) AS users_assigned
+//     FROM locations l
+//     INNER JOIN assets a ON l.id = a.location_id
+//     LEFT JOIN user_assets ua ON a.id = ua.asset_id
+//   `;
+
+//   // If user_id is provided, add a WHERE clause to filter assets assigned to that user
+//   if (userId) {
+//     query += ` WHERE ua.user_id = ? `;
+//   }
+
+//   query += `
+//     GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
+//   `;
+
+//   try {
+//     const [results] = userId
+//       ? await pool.query(query, [userId]) // Parameterized query to prevent SQL injection
+//       : await pool.query(query); // Execute the query without parameters if no user_id
+
+//     const formattedResults = results.map((row) => ({
+//       location: {
+//         name: `${row.country}, ${row.city}`,
+//         address: row.address,
+//       },
+//       asset: {
+//         id: row.asset_id,
+//         name: row.asset_name,
+//       },
+//       usersAssigned: row.users_assigned,
+//     }));
+
+//     res.json(formattedResults);
+//   } catch (err) {
+//     console.error('Error fetching assets data:', err);
+//     res.status(500).json({ error: 'Failed to fetch data' });
+//   }
+// });
+
+const getRoleNameById = async (roleId) => {
+  const roleQuery = 'SELECT role_name FROM roles WHERE id = ?';
+  const [roleResult] = await pool.query(roleQuery, [roleId]);
+  return roleResult.length > 0 ? roleResult[0].role_name : null;
+};
+
 app.get('/api/assets', async (req, res) => {
-  const query = `
-    SELECT 
-      l.country,
-      l.city,
-      l.address,
-      a.id AS asset_id,
-      a.name AS asset_name,
-      COUNT(DISTINCT ua.user_id) AS users_assigned
-    FROM locations l
-    INNER JOIN assets a ON l.id = a.location_id
-    LEFT JOIN user_assets ua ON a.id = ua.asset_id
-    GROUP BY l.id, l.country, l.city, l.address, a.id, a.name;
-  `;
+  const userId = req.query.user_id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
 
   try {
-    const [results] = await pool.query(query); // Execute the query
+    // Step 1: Retrieve the user's role and customer_id
+    const userQuery = 'SELECT role_id, customer_id FROM users WHERE id = ?';
+    const [userResults] = await pool.query(userQuery, [userId]);
 
+    if (userResults.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { role_id, customer_id } = userResults[0];
+    const roleName = await getRoleNameById(role_id);
+
+    if (!roleName) {
+      return res.status(500).json({ error: 'User role not found' });
+    }
+
+    // Step 2: Construct the SQL query based on the user's role
+    let query = `
+      SELECT 
+        l.country,
+        l.city,
+        l.address,
+        a.id AS asset_id,
+        a.name AS asset_name,
+        COUNT(DISTINCT ua.user_id) AS users_assigned
+      FROM locations l
+      INNER JOIN assets a ON l.id = a.location_id
+      LEFT JOIN user_assets ua ON a.id = ua.asset_id
+      INNER JOIN customers c ON l.customer_id = c.id
+    `;
+
+    // Parameters for the SQL query
+    const queryParams = [];
+
+    if (roleName.toLowerCase() === 'admin') {
+      // Admin users: Fetch all assets for their customer_id
+      query += ` WHERE c.id = ? `;
+      queryParams.push(customer_id);
+    } else {
+      // Non-admin users: Fetch only assets assigned to them
+      query += `
+        INNER JOIN user_assets assigned_ua ON a.id = assigned_ua.asset_id
+        WHERE assigned_ua.user_id = ?
+      `;
+      queryParams.push(userId);
+    }
+
+    query += `
+      GROUP BY l.id, l.country, l.city, l.address, a.id, a.name
+      ORDER BY l.country, l.city, a.name;
+    `;
+
+    // Step 3: Execute the query with appropriate parameters
+    const [results] = await pool.query(query, queryParams);
+
+    // Step 4: Format the results
     const formattedResults = results.map((row) => ({
       location: {
         name: `${row.country}, ${row.city}`,
@@ -147,9 +288,9 @@ app.get('/api/assets', async (req, res) => {
       usersAssigned: row.users_assigned,
     }));
 
-    res.json(formattedResults); // Send the formatted response
+    res.json(formattedResults);
   } catch (err) {
-    console.error('Error fetching locations data:', err);
+    console.error('Error fetching assets data:', err);
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
@@ -837,6 +978,8 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
         SUM(value) AS total_value
+
+        ROUND(AVG(value), 1) AS average_value
       FROM temperature_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -847,6 +990,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
         SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM co2_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -857,6 +1001,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
         SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM vdd_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -867,6 +1012,7 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
         SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM humidity_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -884,6 +1030,11 @@ app.get('/api/measurements/last-calendar-month', async (req, res) => {
     const [co2Results] = await co2Promise;
     const [vddResults] = await vddPromise;
     const [humidityResults] = await humidityPromise;
+
+    // console.log('Temperature Results:', temperatureResults);
+    // console.log('CO2 Results:', co2Results);
+    // console.log('VDD Results:', vddResults);
+    // console.log('Humidity Results:', humidityResults);
 
     res.json({
       temperature: temperatureResults,
@@ -1181,7 +1332,7 @@ app.get('/api/assets/:id/measurements', async (req, res) => {
   const assetId = req.params.id;
 
   const query = `
-    SELECT atm.measurement_type, atm.unit
+    SELECT atm.measurement_type, atm.unit, atm.aggr_type
     FROM asset_type_measurements AS atm
     INNER JOIN assets AS a ON a.asset_type_id = atm.asset_type_id
     WHERE a.id = ?
@@ -1257,10 +1408,131 @@ app.get('/api/measurements', async (req, res) => {
   }
 });
 
+// app.get('/measurements', async (req, res) => {
+//   const measurementTable = req.query.measurementTable;
+//   const assetId = req.query.assetId;
+//   const period = req.query.period;
+//   const metricType = req.query.metricType === 'total' ? 'total' : 'average';
+
+//   console.log('Query Parameters:', measurementTable, assetId, period, metricType);
+
+//   // Validate input parameters
+//   if (!measurementTable || !assetId || !period) {
+//     return res
+//       .status(400)
+//       .json({ error: 'Missing required query parameters.' });
+//   }
+
+//   // Allowed measurement tables to prevent SQL injection
+//   const allowedTables = [
+//     'co2_measurements',
+//     'humidity_measurements',
+//     'light_measurements',
+//     'temperature_measurements',
+//     'vdd_measurements',
+//     // Add other measurement tables as needed
+//   ];
+
+//   if (!allowedTables.includes(measurementTable)) {
+//     return res
+//       .status(400)
+//       .json({ error: 'Invalid measurement table specified.' });
+//   }
+
+//   try {
+//     const idColumn = 'asset_id'; // Use 'asset_id' as per your table schema
+
+//     // First, find the latest timestamp in the measurement table for the given assetId
+//     const latestDateQuery = `
+//       SELECT MAX(timestamp) AS latestTimestamp
+//       FROM ${measurementTable}
+//       WHERE ${idColumn} = ?
+//     `;
+
+//     const [latestDateResult] = await pool.query(latestDateQuery, [assetId]);
+
+//     if (!latestDateResult || !latestDateResult[0].latestTimestamp) {
+//       return res
+//         .status(404)
+//         .json({ error: 'No data found for the given assetId.' });
+//     }
+
+//     const latestTimestamp = new Date(latestDateResult[0].latestTimestamp);
+//     console.log('Latest Timestamp from Database:', latestTimestamp);
+//     console.log('Latest Timestamp (ISOString):', latestTimestamp.toISOString());
+
+//     const currentDate = latestTimestamp;
+
+//     // Define the date range based on the period
+//     let startDate;
+//     let endDate = currentDate;
+
+//     if (period === 'last_week') {
+//       // Set startDate to 6 days before currentDate
+//       startDate = new Date(latestTimestamp.getTime() - 6 * 24 * 60 * 60 * 1000);
+//     } else if (period === 'last_3_months') {
+//       startDate = new Date(currentDate);
+//       startDate.setMonth(currentDate.getMonth() - 2); // Include the current month and two previous months
+//       startDate.setDate(1); // Start from the first day of the month
+//     } else if (period === 'past_year') {
+//       startDate = new Date(currentDate);
+//       startDate.setFullYear(currentDate.getFullYear() - 1); // One year back from currentDate
+//     } else {
+//       return res.status(400).json({ error: 'Invalid period specified.' });
+//     }
+
+//     const startDateStr = startDate.toISOString().slice(0, 19).replace('T', ' ');
+//     const endDateStr = endDate.toISOString().slice(0, 19).replace('T', ' ');
+
+//     console.log('Start Date:', startDateStr);
+//     console.log('End Date:', endDateStr);
+
+//     // Construct the SQL query
+//     const dataQuery = `
+//       SELECT id, timestamp, value, ${idColumn}
+//       FROM ${measurementTable}
+//       WHERE ${idColumn} = ? AND timestamp BETWEEN ? AND ?
+//       ORDER BY timestamp ASC
+//     `;
+
+//     const [dataResults] = await pool.query(dataQuery, [
+//       assetId,
+//       startDateStr,
+//       endDateStr,
+//     ]);
+
+//     // Process the results to match the required data format for charts
+//     let responseData = [];
+
+//     // Data aggregation based on the period
+//     if (period === 'last_week') {
+//       responseData = processDataByDay(dataResults, startDate, endDate, metricType);
+//     } else if (period === 'last_3_months') {
+//       responseData = processDataByWeek(dataResults, startDate, endDate, metricType);
+//     } else if (period === 'past_year') {
+//       responseData = processDataByMonth(dataResults, startDate, endDate, metricType);
+//     }
+
+//     res.json(responseData);
+//   } catch (err) {
+//     console.error('Error fetching measurements:', err);
+//     res.status(500).json({ error: 'Database query error.' });
+//   }
+// });
+
 app.get('/measurements', async (req, res) => {
   const measurementTable = req.query.measurementTable;
   const assetId = req.query.assetId;
   const period = req.query.period;
+  const metricType = req.query.metricType === 'total' ? 'total' : 'average';
+
+  console.log(
+    'Query Parameters:',
+    measurementTable,
+    assetId,
+    period,
+    metricType
+  );
 
   // Validate input parameters
   if (!measurementTable || !assetId || !period) {
@@ -1276,6 +1548,7 @@ app.get('/measurements', async (req, res) => {
     'light_measurements',
     'temperature_measurements',
     'vdd_measurements',
+
     // Add other measurement tables as needed
   ];
 
@@ -1288,15 +1561,16 @@ app.get('/measurements', async (req, res) => {
   try {
     const idColumn = 'asset_id'; // Use 'asset_id' as per your table schema
 
-    // First, find the latest timestamp in the measurement table for the given assetId
+    // Find the latest timestamp in the measurement table for the given assetId
     const latestDateQuery = `
       SELECT MAX(timestamp) AS latestTimestamp
-      FROM \`${measurementTable}\`
+      FROM ${measurementTable}
       WHERE ${idColumn} = ?
     `;
 
     const [latestDateResult] = await pool.query(latestDateQuery, [assetId]);
 
+    // Handle case where no data exists for the given assetId
     if (!latestDateResult || !latestDateResult[0].latestTimestamp) {
       return res
         .status(404)
@@ -1310,6 +1584,11 @@ app.get('/measurements', async (req, res) => {
     // Adjust currentDate if necessary
     const dataEndDate = new Date('2022-12-31T23:59:59'); // Adjust based on your data
     // const currentDate = latestTimestamp > dataEndDate ? dataEndDate : latestTimestamp;
+      console.log('No data found for the given assetId or table.');
+      return res.json([]); // Return an empty array instead of 404
+    }
+
+    const latestTimestamp = new Date(latestDateResult[0].latestTimestamp);
     const currentDate = latestTimestamp;
 
     // Define the date range based on the period
@@ -1323,10 +1602,14 @@ app.get('/measurements', async (req, res) => {
       startDate = new Date(currentDate);
       startDate.setMonth(currentDate.getMonth() - 2); // Include the current month and two previous months
       startDate.setDate(1); // Start from the first day of the month
+      startDate = new Date(latestTimestamp.getTime() - 6 * 24 * 60 * 60 * 1000);
+    } else if (period === 'last_3_months') {
+      startDate = new Date(currentDate);
+      startDate.setMonth(currentDate.getMonth() - 2);
+      startDate.setDate(1);
     } else if (period === 'past_year') {
       startDate = new Date(currentDate);
-      startDate.setFullYear(currentDate.getFullYear() - 1); // One year back from currentDate
-      // Keep the same month and day
+      startDate.setFullYear(currentDate.getFullYear() - 1);
     } else {
       return res.status(400).json({ error: 'Invalid period specified.' });
     }
@@ -1337,10 +1620,10 @@ app.get('/measurements', async (req, res) => {
     console.log('Start Date:', startDateStr);
     console.log('End Date:', endDateStr);
 
-    // Construct the SQL query
+    // Fetch data within the date range
     const dataQuery = `
       SELECT id, timestamp, value, ${idColumn}
-      FROM \`${measurementTable}\`
+      FROM ${measurementTable}
       WHERE ${idColumn} = ? AND timestamp BETWEEN ? AND ?
       ORDER BY timestamp ASC
     `;
@@ -1351,7 +1634,12 @@ app.get('/measurements', async (req, res) => {
       endDateStr,
     ]);
 
-    // Process the results to match the required data format for charts
+    if (dataResults.length === 0) {
+      console.log('No measurements found within the specified date range.');
+      return res.json([]); // Return an empty array
+    }
+
+    // Process the results for the required chart format
     let responseData = [];
 
     // Data aggregation based on the period
@@ -1361,6 +1649,27 @@ app.get('/measurements', async (req, res) => {
       responseData = processDataByWeek(dataResults, startDate, endDate);
     } else if (period === 'past_year') {
       responseData = processDataByMonth(dataResults, startDate, endDate);
+    if (period === 'last_week') {
+      responseData = processDataByDay(
+        dataResults,
+        startDate,
+        endDate,
+        metricType
+      );
+    } else if (period === 'last_3_months') {
+      responseData = processDataByWeek(
+        dataResults,
+        startDate,
+        endDate,
+        metricType
+      );
+    } else if (period === 'past_year') {
+      responseData = processDataByMonth(
+        dataResults,
+        startDate,
+        endDate,
+        metricType
+      );
     }
 
     res.json(responseData);
@@ -1371,7 +1680,7 @@ app.get('/measurements', async (req, res) => {
 });
 
 // Function to process data by day for 'last_week'
-function processDataByDay(results, startDate, endDate) {
+function processDataByDay(results, startDate, endDate, metricType) {
   const dataByDate = {};
   const dateList = [];
   const responseData = [];
@@ -1419,6 +1728,21 @@ function processDataByDay(results, startDate, endDate) {
       averageValue:
         averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
     });
+    if (metricType === 'total') {
+      const totalValue = values.length ? sum : null;
+      responseData.push({
+        date: dateStr,
+        averageValue:
+          totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
+      });
+    } else {
+      const averageValue = values.length ? sum / values.length : null;
+      responseData.push({
+        date: dateStr,
+        averageValue:
+          averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+      });
+    }
   });
 
   return responseData;
@@ -1435,7 +1759,7 @@ function getWeekNumberISO(date) {
 }
 
 // Function to process data by week for 'last_3_months'
-function processDataByWeek(results, startDate, endDate) {
+function processDataByWeek(results, startDate, endDate, metricType) {
   const dataByWeek = {};
 
   // Collect data into dataByWeek
@@ -1457,6 +1781,7 @@ function processDataByWeek(results, startDate, endDate) {
   let current = new Date(startDate);
   // Align 'current' to the start of the week (Monday)
   const day = current.getDay();
+
   const diff = day === 0 ? 6 : day - 1; // If Sunday (0), go back 6 days, else go back (day-1)
   current.setDate(current.getDate() - diff);
 
@@ -1465,7 +1790,6 @@ function processDataByWeek(results, startDate, endDate) {
     const weekKey = `${year}-W${week}`;
     if (!weekKeysInRange.includes(weekKey)) {
       weekKeysInRange.push(weekKey);
-      // Store the start date of the week
       const weekStartStr = current.toISOString().slice(0, 10); // YYYY-MM-DD
       weekStartDates[weekKey] = weekStartStr;
     }
@@ -1477,19 +1801,36 @@ function processDataByWeek(results, startDate, endDate) {
   weekKeysInRange.forEach((weekKey) => {
     const values = dataByWeek[weekKey] || [];
     const sum = values.reduce((a, b) => a + b, 0);
+
     const averageValue = values.length ? sum / values.length : null;
     responseData.push({
       date: weekStartDates[weekKey],
       averageValue:
         averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
     });
+
+    if (metricType === 'total') {
+      const totalValue = values.length ? sum : null;
+      responseData.push({
+        date: weekStartDates[weekKey],
+        averageValue:
+          totalValue !== null ? parseFloat(totalValue.toFixed(2)) : null,
+      });
+    } else {
+      const averageValue = values.length ? sum / values.length : null;
+      responseData.push({
+        date: weekStartDates[weekKey],
+        averageValue:
+          averageValue !== null ? parseFloat(averageValue.toFixed(2)) : null,
+      });
+    }
   });
 
   return responseData;
 }
 
 // Function to process data by month for 'past_year'
-function processDataByMonth(results, startDate, endDate) {
+function processDataByMonth(results, startDate, endDate, metricType) {
   const dataByMonth = {};
 
   // Collect data into dataByMonth
@@ -1525,13 +1866,20 @@ function processDataByMonth(results, startDate, endDate) {
     const values = dataByMonth[monthKey];
     if (values && values.length > 0) {
       const sum = values.reduce((a, b) => a + b, 0);
-      const averageValue = sum / values.length;
-      responseData.push({
-        monthLabel: monthKey,
-        averageValue: parseFloat(averageValue.toFixed(2)),
-      });
+      if (metricType === 'total') {
+        const totalValue = sum;
+        responseData.push({
+          monthLabel: monthKey,
+          averageValue: parseFloat(totalValue.toFixed(2)),
+        });
+      } else {
+        const averageValue = sum / values.length;
+        responseData.push({
+          monthLabel: monthKey,
+          averageValue: parseFloat(averageValue.toFixed(2)),
+        });
+      }
     }
-    // Optionally, exclude months with no data by not adding them to responseData
   });
 
   return responseData;
