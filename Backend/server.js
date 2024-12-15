@@ -996,62 +996,18 @@ app.get("/users/:customer_id", async (req, res) => {
 });
 
 // Fetch a single user by their id
-// app.get("/user/:id", async (req, res) => {
-//   const userId = req.params.id;
-
-//   try {
-//     // Query to join users, user_assets, and assets tables
-//     const query = `
-//       SELECT u.*,
-//              a.id AS asset_id, a.name AS asset_name, a.asset_type_id, a.location_id, a.created_at AS asset_created_at
-//       FROM users u
-//       LEFT JOIN user_assets ua ON u.id = ua.user_id
-//       LEFT JOIN assets a ON ua.asset_id = a.id
-//       WHERE u.id = ?;
-//     `;
-
-//     // Execute the query with the user_id parameter
-//     const [results] = await pool.query(query, [userId]);
-
-//     if (results.length === 0) {
-//       return res.status(404).send("User not found");
-//     }
-
-//     // Return the user with their assets
-//     res.json(results);
-//   } catch (err) {
-//     console.error("Error fetching user by ID and assets:", err.stack);
-//     res.status(500).send("Error fetching user and assets");
-//   }
-// });
-
 app.get("/user/:id", async (req, res) => {
   const userId = req.params.id;
 
   try {
     // Query to join users, user_assets, and assets tables
     const query = `
-      SELECT
-    u.id AS user_id,
-    u.username,
-    u.email,
-    u.phone_number,
-    u.user_summary,
-    JSON_ARRAYAGG(
-        JSON_OBJECT(
-            'asset_id', a.id,
-            'asset_name', a.name,
-            'asset_type_id', a.asset_type_id,
-            'location_id', a.location_id,
-            'asset_created_at', a.created_at
-        )
-    ) AS assets
-FROM users u
-LEFT JOIN user_assets ua ON u.id = ua.user_id
-LEFT JOIN assets a ON ua.asset_id = a.id
-WHERE u.id = ?
-GROUP BY u.id;
-
+      SELECT u.*,
+             a.id AS asset_id, a.name AS asset_name, a.asset_type_id, a.location_id, a.created_at AS asset_created_at
+      FROM users u
+      LEFT JOIN user_assets ua ON u.id = ua.user_id
+      LEFT JOIN assets a ON ua.asset_id = a.id
+      WHERE u.id = ?;
     `;
 
     // Execute the query with the user_id parameter
@@ -1068,6 +1024,9 @@ GROUP BY u.id;
     res.status(500).send("Error fetching user and assets");
   }
 });
+
+
+
 
 // Update a user by ID
 app.put("/user/:id", async (req, res) => {
@@ -1194,6 +1153,7 @@ app.put("/user/:id", async (req, res) => {
     connection.release();
   }
 });
+
 
 // Delete a user by ID
 app.delete("/user/:id", async (req, res) => {
