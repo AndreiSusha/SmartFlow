@@ -14,6 +14,7 @@ const DonutChart = ({
   textColor = 'black',
   max = 100,
   animate = false,
+  unit = ''
 }) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
   const [animatedPercentage, setAnimatedPercentage] = React.useState(0);
@@ -90,7 +91,7 @@ const DonutChart = ({
             textAlign: 'center',
           }}
         >
-          {animatedPercentage}
+          {animatedPercentage} {unit}
         </Text>
       </View>
     </View>
