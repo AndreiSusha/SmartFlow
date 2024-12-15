@@ -8,6 +8,7 @@ import { addUser } from "../../api/AssetApi";
 import { useToastStore } from "../../stores/toastStore";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useAuthStore } from "../../stores/authStore";
+import { queryClient } from "../../api/QueryClient";
 
 const AddNewUser = ({ route }) => {
   const { assetId } = route.params;
@@ -27,6 +28,7 @@ const AddNewUser = ({ route }) => {
     onSuccess: () => {
       navigation.goBack();
       showToast("Success", "User added successfully", "success");
+      queryClient.invalidateQueries(["AssetsList"]);
     },
     onError: () => {
       showToast("Error", "Failed to add user", "error");

@@ -189,6 +189,7 @@ const HomeScreen = ({ navigation }) => {
                   radius={item.radius}
                   strokeWidth={item.strokeWidth}
                   animate={shouldAnimate}
+                  unit={MEASUREMENT_CONFIG[item.measurementType]?.unit || ""}
                 />
               ))}
             </View>
@@ -201,6 +202,7 @@ const HomeScreen = ({ navigation }) => {
                   radius={item.radius}
                   strokeWidth={item.strokeWidth}
                   animate={shouldAnimate}
+                  unit={MEASUREMENT_CONFIG[item.measurementType]?.unit || ""}
                 />
               ))}
             </View>
