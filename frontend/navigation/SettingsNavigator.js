@@ -15,7 +15,7 @@ import axios from "axios";
 import AssetDetails from "../screens/AssetManagement/AssetDetails";
 import EditAsset from "../screens/AssetManagement/EditAsset";
 import AddNewUser from "../screens/AssetManagement/AddNewUser";
-
+import { useAuthStore } from "../stores/authStore";
 
 const Stack = createStackNavigator();
 
@@ -28,33 +28,37 @@ const SettingsNavigator = () => {
   const { removeUser } = useUserContext();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useAuthStore();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
   const handleDeleteUser = async () => {
     setIsLoading(true);
     setModalVisible(false);
-  
-    try {
 
+    try {
       if (!userIdToDelete) {
-        alert("User ID is missing. Cannot delete user.");
+        showToast(
+          "Deletion Failed",
+          "User ID is missing. Cannot delete user.",
+          "error",
+          3000
+        );
         setIsLoading(false);
         return;
       }
-  
+
       const response = await axios.delete(`${API_IP}user/${userIdToDelete}`);
-  
+
       if (response.status === 200) {
         removeUser(userIdToDelete);
-        alert("User deleted successfully");
-  
+        showToast("Success", "User deleted successfully.", "success", 3000);
         // Reset the navigation stack to include SettingsScreen and UserManagement
         navigation.reset({
-          index: 0, 
+          index: 0,
           routes: [
             {
-              name: "Settings", 
+              name: "Settings",
               state: {
                 index: 1,
                 routes: [
@@ -66,16 +70,25 @@ const SettingsNavigator = () => {
           ],
         });
       } else {
-        alert(`Failed to delete user. Status: ${response.status}`);
+        showToast(
+          "Deletion Failed",
+          `Failed to delete user. Status: ${response.status}`,
+          "error",
+          3000
+        );
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("Failed to delete user. Check your connection.");
+      showToast(
+        "Deletion Failed",
+        "Failed to delete user. Check your connection.",
+        "error",
+        3000
+      );
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <>
@@ -133,7 +146,7 @@ const SettingsNavigator = () => {
             headerRight: () => (
               <>
                 <TouchableOpacity
-                  style={{ marginRight: 5 }}
+                  style={{ marginRight: 20 }}
                   onPress={() => setBottomSheetVisible(true)}
                 >
                   <Ionicons
@@ -159,13 +172,21 @@ const SettingsNavigator = () => {
                       navigation.navigate("EditUser");
                     } else if (option.value === "delete") {
                       setBottomSheetVisible(false);
-                      const userId = navigation.getState().routes.find(r => r.name === "UserDetails")?.params?.userId;
+                      const userId = navigation
+                        .getState()
+                        .routes.find((r) => r.name === "UserDetails")
+                        ?.params?.userId;
                       if (userId) {
                         setUserIdToDelete(userId); // Set the user ID to delete
                         setModalVisible(true); // Open the confirmation modal
                       } else {
                         console.error("User ID is missing from route params.");
-                        alert("User ID is missing. Cannot delete.");
+                        showToast(
+                          "Deletion Failed",
+                          "User ID is missing. Cannot delete.",
+                          "error",
+                          3000
+                        );
                       }
                     }
                   }}

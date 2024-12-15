@@ -72,7 +72,7 @@ const BarChart = ({
 
   const formatYLabel = (value) =>
     unit === unitName
-      ? `${value.toFixed(0)}${unitName}`
+      ? (aggrType === 'average' ? `${value.toFixed(2)}${unitName}` : `${value.toFixed(0)}${unitName}`)
       : `€${value.toFixed(2)}`;
 
   const activeXItem = useDerivedValue(() => {
@@ -242,7 +242,7 @@ const BarChart = ({
         domainPadding={{ left: 15, right: 15, top: 30 }}
         axisOptions={{
           font,
-          tickCount: { x: xTickCount, y: 4 },
+          tickCount: { x: xTickCount, y: 5 },
           labelColor: "#667085",
           lineColor: "#515050",
           labelOffset: 5,

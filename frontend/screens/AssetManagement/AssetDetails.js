@@ -114,7 +114,7 @@ const AssetDetails = () => {
       label: "Add New user",
       icon: "person-add-outline",
       onPress: () => {
-        navigation.navigate("AddUser", { assetId: asset.asset_id });
+        navigation.navigate("AddNewUser", { assetId: asset.asset_id });
       },
     }
   ];
