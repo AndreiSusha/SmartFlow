@@ -123,8 +123,9 @@ const AssetDetails = () => {
   const closeBottomSheet = () => setIsBottomSheetVisible(false);
 
   const handleDeletePress = () => {
-    setIsDeleteModalVisible(true);
     closeBottomSheet();
+    setIsDeleteModalVisible(true);
+    console.log("Delete asset modal visible: ", isDeleteModalVisible);
   };
 
   const handleEditPress = () => {

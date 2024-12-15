@@ -5,7 +5,6 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacity,
-
   Image,
 } from 'react-native';
 import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
@@ -24,16 +23,12 @@ const UserDetails = ({
   setModalVisible,
 }) => {
   const { userId } = route.params;
-
   const { userDetails, setUserDetails } = useUserContext();
   const [loading, setLoading] = useState(true);
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
   const { removeUser } = useUserContext();
 
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
-
-
-
 
   // Function to fetch user details
   const fetchUserDetails = useCallback(async () => {
@@ -68,9 +63,6 @@ const UserDetails = ({
       fetchUserDetails();
     }, [fetchUserDetails])
   );
-
-  console.log("user details: ", userDetails)
-
   
  
 
@@ -105,14 +97,8 @@ const UserDetails = ({
           <Ionicons name="location-outline" size={30} color="#000" />
         </View>
         <View style={styles.detail}>
-          <Text style={styles.title}>Assigned Assets</Text>
-          {userDetails.assets.map((asset, index) => {
-            return (
-              <Text style={styles.details} key={index}>
-                {asset.asset_name}
-              </Text>
-            );
-          })}
+          <Text style={styles.title}>Assigned Location</Text>
+          <Text style={styles.details}>{userDetails.asset_name}</Text>
         </View>
       </View>
 
@@ -170,38 +156,6 @@ const UserDetails = ({
           <Text style={styles.details}>{userDetails.user_summary}</Text>
         </View>
       </View>
-
-      {/* Last Active Section */}
-      <View style={styles.ActiveContent}>
-        <View style={styles.icon}>
-          <Svg
-            width="28"
-            height="28"
-            viewBox="0 0 22 23"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <Path
-              d="M11 21.5C16.5228 21.5 21 17.0228 21 11.5C21 5.97715 16.5228 1.5 11 1.5C5.47715 1.5 1 5.97715 1 11.5C1 17.0228 5.47715 21.5 11 21.5Z"
-              stroke="black"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <Path
-              d="M9.88867 7.05554V12.6111H15.4442"
-              stroke="black"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </Svg>
-        </View>
-        <View style={styles.detail}>
-          <Text style={styles.title}>Last Active</Text>
-          <Text style={styles.details}>{userDetails.last_active}</Text>
-        </View>
-      </View>
       
       
 
@@ -215,90 +169,90 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   userInfo: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#CFCACA",
+    borderBottomColor: '#CFCACA',
     borderRadius: 16,
     marginBottom: 20,
   },
   Image: {
     width: 80,
     height: 80,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: '#e0e0e0',
     borderRadius: 40,
     marginRight: 15,
   },
   Info: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   name: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 5,
-    color: "#333",
+    color: '#333',
   },
   email: {
     fontSize: 16,
-    color: "#AEAEAE",
+    color: '#AEAEAE',
   },
 
   title: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 5,
-    color: "#333",
+    color: '#333',
   },
   details: {
     fontSize: 14,
-    color: "#000000",
+    color: '#000000',
   },
 
   locationContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#CFCACA",
+    borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   phoneNumber: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#CFCACA",
+    borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   SummaryContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#CFCACA",
+    borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   ActiveContent: {
     marginBottom: 20,
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#CFCACA",
+    borderBottomColor: '#CFCACA',
     borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   icon: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 10,
   },
 

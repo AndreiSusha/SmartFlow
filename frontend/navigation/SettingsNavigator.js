@@ -177,9 +177,11 @@ const SettingsNavigator = () => {
                         .getState()
                         .routes.find((r) => r.name === "UserDetails")
                         ?.params?.userId;
+                      console.log("Retrieved userId:", userId); // Debug log
                       if (userId) {
-                        setUserIdToDelete(userId); // Set the user ID to delete
-                        setModalVisible(true); // Open the confirmation modal
+                        setUserIdToDelete(userId);
+                        setModalVisible(true);
+                        console.log("Modal set to visible"); // Debug log
                       } else {
                         console.error("User ID is missing from route params.");
                         showToast(
@@ -191,6 +193,7 @@ const SettingsNavigator = () => {
                       }
                     }
                   }}
+                  
                 />
               </>
             ),
