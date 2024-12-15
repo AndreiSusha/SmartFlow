@@ -93,3 +93,14 @@ export const addAsset = async (assetData) => {
     throw error;
   }
 };
+
+export const addUser = async (userData) => {
+  const endpoint = "/user";
+  try {
+    const response = await api.post(endpoint, userData);
+    return response.data;
+  } catch (error) {
+    console.error("Error adding user:", error);
+    throw error;
+  }
+}

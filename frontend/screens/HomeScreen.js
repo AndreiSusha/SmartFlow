@@ -5,6 +5,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import MonthDropdown from "../components/MonthDropdown";
@@ -66,9 +67,7 @@ const HomeScreen = ({ navigation }) => {
   } = useQuery({
     queryKey: ["AssetsList"],
     queryFn: () => getAssets(user.user_id),
-    // onSuccess: (assets) => {
-    //   console.log("Fetched assets: ", assets);
-    // },
+
   });
 
   useEffect(() => {
@@ -171,12 +170,12 @@ const HomeScreen = ({ navigation }) => {
           return (
             <TouchableOpacity
               onPress={() => setIsBottomSheetVisible(true)}
-              style={styles.selector}
+              style={[styles.selector, Platform.OS === "ios" && {paddingVertical: 2}]}
             >
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                style={styles.selectorText}
+                style={[styles.selectorText]}
               >
                 {chosenAssetName}
               </Text>

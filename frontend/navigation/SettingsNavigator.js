@@ -133,7 +133,7 @@ const SettingsNavigator = () => {
             headerRight: () => (
               <>
                 <TouchableOpacity
-                  style={{ marginRight: 5 }}
+                  style={{ marginRight: 20 }}
                   onPress={() => setBottomSheetVisible(true)}
                 >
                   <Ionicons
