@@ -4,6 +4,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 import UserManagement from "../screens/UserManagmnet/UserManagemet";
 import UserDetails from "../screens/UserManagmnet/UserDetails";
 import AssetManagement from "../screens/AssetManagement/AssetManagement";
+import ChangeEmail from "../screens/ChangeEmail";
+import ChangePassword from "../screens/ChangePassword";
 import { Platform, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@components/bottomsheets/BottomSheet";
@@ -240,6 +242,30 @@ const SettingsNavigator = () => {
             title: "Add new user",
           }}
         />
+
+<Stack.Screen
+          name="ChangeEmail"
+          component={ChangeEmail}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Change Email",
+          }}
+        />
+        <Stack.Screen
+          name="ChangePassword"
+          component={ChangePassword}
+          options={{
+            headerStyle: {
+              backgroundColor: "transparent",
+              elevation: Platform.OS === "android" ? 0 : undefined,
+            },
+            title: "Change Password",
+          }}
+        />
+
       </Stack.Navigator>
 
       {/* Render the ConfirmationModal outside of Stack.Navigator */}

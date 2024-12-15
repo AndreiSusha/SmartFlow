@@ -67,7 +67,10 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </>
         )}
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity 
+        style={styles.option}
+        onPress={() => navigation.navigate("ChangePassword")}
+        >
           <View style={styles.iconContainer}>
             <FontAwesome5 name="lock" size={24} color="#A0C287" />
           </View>
@@ -80,7 +83,10 @@ export default function SettingsScreen() {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity 
+        style={styles.option}
+        onPress={() => navigation.navigate("ChangeEmail")}
+        >
           <View style={styles.iconContainer}>
             <MaterialIcons name="email" size={24} color="#A0C287" />
           </View>
