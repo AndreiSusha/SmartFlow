@@ -31,7 +31,7 @@ const ReportCard = ({ title, value, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: 150,
+    width: '100%',
     height: 100,
     backgroundColor: '#53B6C7',
     borderRadius: 10,

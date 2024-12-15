@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Text, Alert } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Input from "@components/Input";
 import Button from "@components/Button";
@@ -9,8 +9,7 @@ import { useToastStore } from "../../stores/toastStore";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useAuthStore } from "../../stores/authStore";
 
-const AddNewUser = ({route}) => {
-
+const AddNewUser = ({ route }) => {
   const { assetId } = route.params;
   const { user } = useAuthStore();
   const { showToast } = useToastStore();

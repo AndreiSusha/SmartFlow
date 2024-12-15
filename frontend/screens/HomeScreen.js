@@ -15,40 +15,9 @@ import DonutChart from "../components/reports/charts/DonutChart";
 import { useQuery } from "@tanstack/react-query";
 import { getAssets } from "../api/AssetApi";
 import { useAuthStore } from "../stores/authStore";
-import BottomSheet from "@components/bottomsheets/BottomSheet";
 import AssetBottomSheet from "@components/bottomsheets/AssetBottomSheet";
-
-const formatValue = (value, unit) => {
-  const numValue = parseFloat(value);
-
-  switch (unit) {
-    case "V":
-      return {
-        display: `${(numValue / 1000000).toFixed(0)} MV`,
-        numeric: numValue / 1000000,
-      };
-    case "°C":
-      return {
-        display: `${numValue.toFixed(0)} °C`,
-        numeric: numValue,
-      };
-    case "ppm":
-      return {
-        display: `${numValue.toFixed(0)} ppm`,
-        numeric: numValue,
-      };
-    case "%":
-      return {
-        display: `${numValue.toFixed(0)} %`,
-        numeric: numValue,
-      };
-    default:
-      return {
-        display: value,
-        numeric: numValue,
-      };
-  }
-};
+import { MEASUREMENT_CONFIG } from "../constants/measurementTypes";
+import { useToastStore } from "../stores/toastStore";
 
 const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
@@ -58,21 +27,15 @@ const HomeScreen = ({ navigation }) => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const { user, chosenAssetId, setChosenAssetId } = useAuthStore();
+  const { showToast } = useToastStore();
 
-  const {
-    data: assets = [],
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const { data: assets = [], isLoading } = useQuery({
     queryKey: ["AssetsList"],
     queryFn: () => getAssets(user.user_id),
-
   });
 
   useEffect(() => {
     if (!chosenAssetId && assets.length === 1) {
-      console.log("Setting chosenAssetId to: ", assets[0]?.asset.id); // Debugging
       setChosenAssetId(assets[0]?.asset.id);
     }
   }, [assets, chosenAssetId, setChosenAssetId]);
@@ -80,12 +43,6 @@ const HomeScreen = ({ navigation }) => {
   const chosenAssetName =
     assets.find((asset) => asset.asset.id === chosenAssetId)?.asset.name ||
     "Select an Asset";
-
-  if (!assets || isLoading) {
-    <View>
-      <Text>Loading...</Text>
-    </View>;
-  }
 
   const fetchDataFromAPI = async (month) => {
     try {
@@ -97,47 +54,51 @@ const HomeScreen = ({ navigation }) => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const text = await response.text();
-      console.log("Raw Response from API:", text);
-
-      const data = JSON.parse(text);
+      const data = await response.json();
+      console.log("API Response:", data);
 
       const formattedData = [
         {
-          ...formatValue(
-            data.temperature[0]?.total_value || 0,
-            data.temperature[0]?.unit || ""
+          measurementType: "temperature_measurements",
+          numeric: parseFloat(data.temperature[0]?.average_value || 0).toFixed(
+            1
           ),
+          display: `${parseFloat(
+            data.temperature[0]?.average_value || 0
+          ).toFixed(1)} °C`,
           color: "#53B6C7",
           radius: 70,
           strokeWidth: 15,
           label: "Temperature",
         },
         {
-          ...formatValue(
-            data.co2[0]?.total_value || 0,
-            data.co2[0]?.unit || ""
-          ),
+          measurementType: "co2_measurements",
+          numeric: parseFloat(data.co2[0]?.average_value || 0).toFixed(1),
+          display: `${parseFloat(data.co2[0]?.average_value || 0).toFixed(
+            1
+          )} ppm`,
           color: "#337EFF",
           radius: 70,
           strokeWidth: 15,
           label: "CO2",
         },
         {
-          ...formatValue(
-            data.vdd[0]?.total_value || 0,
-            data.vdd[0]?.unit || ""
-          ),
+          measurementType: "vdd_measurements",
+          numeric: parseFloat(data.vdd[0]?.average_value || 0).toFixed(1),
+          display: `${parseFloat(data.vdd[0]?.average_value || 0).toFixed(
+            1
+          )} V`,
           color: "#A0C287",
           radius: 70,
           strokeWidth: 15,
           label: "VDD",
         },
         {
-          ...formatValue(
-            data.humidity[0]?.total_value || 0,
-            data.humidity[0]?.unit || ""
-          ),
+          measurementType: "humidity_measurements",
+          numeric: parseFloat(data.humidity[0]?.average_value || 0).toFixed(1),
+          display: `${parseFloat(data.humidity[0]?.average_value || 0).toFixed(
+            1
+          )} %`,
           color: "#A9A9A9",
           radius: 70,
           strokeWidth: 15,
@@ -170,7 +131,10 @@ const HomeScreen = ({ navigation }) => {
           return (
             <TouchableOpacity
               onPress={() => setIsBottomSheetVisible(true)}
-              style={[styles.selector, Platform.OS === "ios" && {paddingVertical: 2}]}
+              style={[
+                styles.selector,
+                Platform.OS === "ios" && { paddingVertical: 2, marginBottom: 6 },
+              ]}
             >
               <Text
                 numberOfLines={1}
@@ -192,7 +156,7 @@ const HomeScreen = ({ navigation }) => {
       },
       headerTitle: "",
     });
-  }, [assets, chosenAssetName, navigation, setIsBottomSheetVisible]);
+  }, [assets, chosenAssetName, navigation]);
 
   useEffect(() => {
     if (selectedMonth) {
@@ -207,48 +171,40 @@ const HomeScreen = ({ navigation }) => {
   return (
     <>
       <ScrollView style={styles.container}>
-        {/* Title */}
-        <Text style={styles.title}>Consumption Overview</Text>
-
-        {/* Donut Chart */}
+        <Text style={styles.title}>Overview</Text>
         <View style={styles.chartContainer}>
-          {/* Month Dropdown */}
           <MonthDropdown
             selectedMonth={selectedMonth}
             setSelectedMonth={(month) => {
-              console.log("Month selected from dropdown:", month);
               setSelectedMonth(month);
             }}
           />
           <View style={styles.rowContainer}>
-            {/* Donut Charts */}
-            {/* <View>
-            {chartData.slice(0, 2).map((item, index) => (
-              <DonutChart
-                key={index}
-                percentage={item.numeric}
-                color={item.color}
-                radius={item.radius}
-                strokeWidth={item.strokeWidth}
-                animate={shouldAnimate}
-              />
-            ))}
+            <View>
+              {chartData.slice(0, 2).map((item, index) => (
+                <DonutChart
+                  key={index}
+                  percentage={item.numeric}
+                  color={item.color}
+                  radius={item.radius}
+                  strokeWidth={item.strokeWidth}
+                  animate={shouldAnimate}
+                />
+              ))}
+            </View>
+            <View style={styles.chartCorner}>
+              {chartData.slice(2).map((item, index) => (
+                <DonutChart
+                  key={index}
+                  percentage={item.numeric}
+                  color={item.color}
+                  radius={item.radius}
+                  strokeWidth={item.strokeWidth}
+                  animate={shouldAnimate}
+                />
+              ))}
+            </View>
           </View>
-          <View style={styles.chartCorner}>
-            {chartData.slice(2).map((item, index) => (
-              <DonutChart
-                key={index}
-                percentage={item.numeric}
-                color={item.color}
-                radius={item.radius}
-                strokeWidth={item.strokeWidth}
-                animate={shouldAnimate}
-              />
-            ))}
-          </View> */}
-          </View>
-
-          {/* Legend */}
           <View style={styles.legendContainer}>
             {chartData.map((item, index) => (
               <View key={index} style={styles.legendItem}>
@@ -260,38 +216,42 @@ const HomeScreen = ({ navigation }) => {
             ))}
           </View>
         </View>
-
-        {/* Reports */}
         <View style={styles.subtitleRow}>
           <Text style={styles.subtitle}>Monthly reports</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Reports")}>
             <Text style={styles.viewAll}>View All</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Report Cards */}
         <View style={styles.cardGrid}>
           {chartData.map((report, index) => (
-            <ReportCard
-              key={index}
-              title={report.label}
-              value={`${report.display} ${report.unit}`}
-              onPress={() =>
-                navigation.navigate("Reports", {
-                  screen: "Report",
-                  params: { reportTitle: report.label },
-                })
-              }
-            />
+            <View key={index} style={styles.card}>
+              <ReportCard
+                title={report.label}
+                value={report.display}
+                onPress={() => {
+                  if (!chosenAssetId) {
+                    showToast(
+                      "No Asset Selected",
+                      "Please select an asset first.",
+                      "warning",
+                      3000 
+                    );
+                  } else {
+                    navigation.navigate("Reports", {
+                      screen: "Report",
+                      params: {
+                        measurementType: report.measurementType,
+                        unit: MEASUREMENT_CONFIG[report.measurementType]?.unit || "",
+                        aggrType: MEASUREMENT_CONFIG[report.measurementType]?.aggrType || "",
+                      },
+                    });
+                  }
+                }}
+              />
+            </View>
           ))}
         </View>
       </ScrollView>
-      {/* <BottomSheet
-        onSelect={() => setIsBottomSheetVisible(false)}
-        options={menuOptions}
-        visible={isBottomSheetVisible}
-        onClose={() => setIsBottomSheetVisible(false)}
-      /> */}
       <AssetBottomSheet
         visible={isBottomSheetVisible}
         onClose={() => setIsBottomSheetVisible(false)}
@@ -309,6 +269,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingHorizontal: 35,
   },
   title: {
     fontSize: 22,
@@ -317,7 +278,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   chartContainer: {
-    width: "90%",
     backgroundColor: "#FFFFFF",
     borderRadius: 21.18,
     padding: 16,
@@ -371,7 +331,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: "Inter-SemiBold",
     color: "#000000",
   },
@@ -379,12 +339,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter-Medium",
     color: "#A0C287",
-  },
-  cardGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    padding: 7,
   },
   selector: {
     flexDirection: "row",
@@ -419,5 +373,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginLeft: 20,
+  },
+  cardGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  card: {
+    width: "48%",
+    marginBottom: 10,
   },
 });

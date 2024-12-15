@@ -887,7 +887,8 @@ app.get("/api/measurement-report", async (req, res) => {
   }
 });
 
-app.get("/api/measurements/last-calendar-month", async (req, res) => {
+
+app.get('/api/measurements/last-calendar-month', async (req, res) => {
   const { month } = req.query;
 
   if (!month) {
@@ -899,7 +900,7 @@ app.get("/api/measurements/last-calendar-month", async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM temperature_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -909,7 +910,7 @@ app.get("/api/measurements/last-calendar-month", async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM co2_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -919,7 +920,7 @@ app.get("/api/measurements/last-calendar-month", async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM vdd_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -929,7 +930,7 @@ app.get("/api/measurements/last-calendar-month", async (req, res) => {
       SELECT
         YEAR(timestamp) AS year,
         MONTH(timestamp) AS month,
-        SUM(value) AS total_value
+        ROUND(AVG(value), 1) AS average_value
       FROM humidity_measurements
       WHERE MONTH(timestamp) = ?
       GROUP BY YEAR(timestamp), MONTH(timestamp)
@@ -947,6 +948,11 @@ app.get("/api/measurements/last-calendar-month", async (req, res) => {
     const [co2Results] = await co2Promise;
     const [vddResults] = await vddPromise;
     const [humidityResults] = await humidityPromise;
+
+    // console.log('Temperature Results:', temperatureResults);
+    // console.log('CO2 Results:', co2Results);
+    // console.log('VDD Results:', vddResults);
+    // console.log('Humidity Results:', humidityResults);
 
     res.json({
       temperature: temperatureResults,
@@ -1404,19 +1410,11 @@ app.get("/measurements", async (req, res) => {
   const period = req.query.period;
   const metricType = req.query.metricType === "total" ? "total" : "average";
 
-  console.log(
-    "Query Parameters:",
-    measurementTable,
-    assetId,
-    period,
-    metricType
-  );
+  console.log('Query Parameters:', measurementTable, assetId, period, metricType);
 
   // Validate input parameters
   if (!measurementTable || !assetId || !period) {
-    return res
-      .status(400)
-      .json({ error: "Missing required query parameters." });
+    return res.status(400).json({ error: 'Missing required query parameters.' });
   }
 
   // Allowed measurement tables to prevent SQL injection
@@ -1429,9 +1427,7 @@ app.get("/measurements", async (req, res) => {
   ];
 
   if (!allowedTables.includes(measurementTable)) {
-    return res
-      .status(400)
-      .json({ error: "Invalid measurement table specified." });
+    return res.status(400).json({ error: 'Invalid measurement table specified.' });
   }
 
   try {
@@ -1500,27 +1496,12 @@ app.get("/measurements", async (req, res) => {
     // Process the results for the required chart format
     let responseData = [];
 
-    if (period === "last_week") {
-      responseData = processDataByDay(
-        dataResults,
-        startDate,
-        endDate,
-        metricType
-      );
-    } else if (period === "last_3_months") {
-      responseData = processDataByWeek(
-        dataResults,
-        startDate,
-        endDate,
-        metricType
-      );
-    } else if (period === "past_year") {
-      responseData = processDataByMonth(
-        dataResults,
-        startDate,
-        endDate,
-        metricType
-      );
+    if (period === 'last_week') {
+      responseData = processDataByDay(dataResults, startDate, endDate, metricType);
+    } else if (period === 'last_3_months') {
+      responseData = processDataByWeek(dataResults, startDate, endDate, metricType);
+    } else if (period === 'past_year') {
+      responseData = processDataByMonth(dataResults, startDate, endDate, metricType);
     }
 
     res.json(responseData);
@@ -1674,8 +1655,7 @@ function processDataByMonth(results, startDate, endDate, metricType) {
   results.forEach((row) => {
     const date = new Date(row.timestamp);
     const monthKey = `${date.getFullYear()}-${(
-      "0" +
-      (date.getMonth() + 1)
+      '0' + (date.getMonth() + 1)
     ).slice(-2)}`; // 'YYYY-MM'
 
     if (!dataByMonth[monthKey]) {
@@ -1690,8 +1670,7 @@ function processDataByMonth(results, startDate, endDate, metricType) {
   current.setDate(1); // Set to first day of month
   while (current <= endDate) {
     const monthKey = `${current.getFullYear()}-${(
-      "0" +
-      (current.getMonth() + 1)
+      '0' + (current.getMonth() + 1)
     ).slice(-2)}`;
     monthKeysInRange.push(monthKey);
     current.setMonth(current.getMonth() + 1); // Move to next month
