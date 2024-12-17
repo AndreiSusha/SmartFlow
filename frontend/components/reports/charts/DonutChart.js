@@ -1,9 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Animated, TextInput } from 'react-native';
+import { StyleSheet, View, Animated, Text } from 'react-native';
 import Svg, { G, Circle } from 'react-native-svg';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const AnimatedInput = Animated.createAnimatedComponent(TextInput);
 
 const DonutChart = ({
   percentage = 0,
@@ -17,55 +16,36 @@ const DonutChart = ({
   animate = false,
 }) => {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
-  const circleRef = React.useRef();
-  const inputRef = React.useRef();
-  const halfCircle = radius + strokeWidth;
+  const [animatedPercentage, setAnimatedPercentage] = React.useState(0);
   const circleCircumference = 2 * Math.PI * radius;
-
-  const runAnimation = () => {
-    animatedValue.setValue(0);
-    Animated.timing(animatedValue, {
-      toValue: percentage,
-      duration,
-      delay,
-      useNativeDriver: false,
-    }).start();
-  };
+  const halfCircle = radius + strokeWidth;
 
   React.useEffect(() => {
     if (animate) {
-      runAnimation();
+      Animated.timing(animatedValue, {
+        toValue: percentage,
+        duration,
+        delay,
+        useNativeDriver: false, // `false` since we are animating SVG properties
+      }).start();
     }
   }, [animate, percentage]);
 
   React.useEffect(() => {
     const listenerId = animatedValue.addListener((v) => {
-      if (circleRef.current) {
-        const maxPerc = (100 * v.value) / max;
-        const strokeDashoffset =
-          circleCircumference - (circleCircumference * maxPerc) / 100;
-        circleRef.current.setNativeProps({ strokeDashoffset });
-      }
-      if (inputRef.current) {
-        inputRef.current.setNativeProps({ text: `${Math.round(v.value)}` });
-      }
+      const maxPerc = (100 * v.value) / max;
+      setAnimatedPercentage(Math.round(v.value));
     });
 
     return () => {
       animatedValue.removeListener(listenerId);
     };
-  }, [max, circleCircumference]);
+  }, [max]);
 
-  React.useEffect(() => {
-    if (circleRef.current) {
-      circleRef.current.setNativeProps({
-        r: radius,
-        strokeWidth,
-        strokeDasharray: circleCircumference,
-        strokeDashoffset: circleCircumference,
-      });
-    }
-  }, [radius, strokeWidth, circleCircumference]);
+  const strokeDashoffset = React.useMemo(() => {
+    const maxPerc = (100 * animatedPercentage) / max;
+    return circleCircumference - (circleCircumference * maxPerc) / 100;
+  }, [animatedPercentage, circleCircumference, max]);
 
   return (
     <View style={{ width: radius * 2, height: radius * 2 }}>
@@ -85,7 +65,6 @@ const DonutChart = ({
             strokeOpacity={0.2}
           />
           <AnimatedCircle
-            ref={circleRef}
             cx="50%"
             cy="50%"
             stroke={color}
@@ -93,21 +72,27 @@ const DonutChart = ({
             r={radius}
             fill="transparent"
             strokeDasharray={circleCircumference}
-            strokeDashoffset={circleCircumference}
+            strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
           />
         </G>
       </Svg>
-      <AnimatedInput
-        ref={inputRef}
-        underlineColorAndroid="transparent"
-        editable={false}
-        defaultValue="0"
+      <View
         style={[
           StyleSheet.absoluteFillObject,
-          { fontSize: radius / 3, color: textColor, textAlign: 'center' },
+          { justifyContent: 'center', alignItems: 'center' },
         ]}
-      />
+      >
+        <Text
+          style={{
+            fontSize: radius / 3,
+            color: textColor,
+            textAlign: 'center',
+          }}
+        >
+          {animatedPercentage}
+        </Text>
+      </View>
     </View>
   );
 };

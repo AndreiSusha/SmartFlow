@@ -1,20 +1,23 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-} from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
-import MonthDropdown from '../components/MonthDropdown';
-import ReportCard from '../components/ReportCard';
-import { Ionicons } from '@expo/vector-icons';
-import DonutChart from '../components/reports/charts/DonutChart';
-import { useQuery } from '@tanstack/react-query';
-import { getAssets } from '../api/AssetApi';
-import { useAuthStore } from '../stores/authStore';
-import AssetBottomSheet from '@components/bottomsheets/AssetBottomSheet';
+  Platform,
+} from "react-native";
+import { useIsFocused } from "@react-navigation/native";
+import MonthDropdown from "../components/MonthDropdown";
+import ReportCard from "../components/ReportCard";
+import { Ionicons } from "@expo/vector-icons";
+import DonutChart from "../components/reports/charts/DonutChart";
+import { useQuery } from "@tanstack/react-query";
+import { getAssets } from "../api/AssetApi";
+import { useAuthStore } from "../stores/authStore";
+import AssetBottomSheet from "@components/bottomsheets/AssetBottomSheet";
+import { MEASUREMENT_CONFIG } from "../constants/measurementTypes";
+import { useToastStore } from "../stores/toastStore";
 
 const HomeScreen = ({ navigation }) => {
   const isFocused = useIsFocused();
@@ -24,9 +27,10 @@ const HomeScreen = ({ navigation }) => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const { user, chosenAssetId, setChosenAssetId } = useAuthStore();
+  const { showToast } = useToastStore();
 
   const { data: assets = [], isLoading } = useQuery({
-    queryKey: ['AssetsList'],
+    queryKey: ["AssetsList"],
     queryFn: () => getAssets(user.user_id),
   });
 
@@ -38,7 +42,7 @@ const HomeScreen = ({ navigation }) => {
 
   const chosenAssetName =
     assets.find((asset) => asset.asset.id === chosenAssetId)?.asset.name ||
-    'Select an Asset';
+    "Select an Asset";
 
   const fetchDataFromAPI = async (month) => {
     try {
@@ -51,56 +55,60 @@ const HomeScreen = ({ navigation }) => {
       }
 
       const data = await response.json();
-      console.log('API Response:', data);
+      console.log("API Response:", data);
 
       const formattedData = [
         {
+          measurementType: "temperature_measurements",
           numeric: parseFloat(data.temperature[0]?.average_value || 0).toFixed(
             1
           ),
           display: `${parseFloat(
             data.temperature[0]?.average_value || 0
           ).toFixed(1)} °C`,
-          color: '#53B6C7',
+          color: "#53B6C7",
           radius: 70,
           strokeWidth: 15,
-          label: 'Temperature',
+          label: "Temperature",
         },
         {
+          measurementType: "co2_measurements",
           numeric: parseFloat(data.co2[0]?.average_value || 0).toFixed(1),
           display: `${parseFloat(data.co2[0]?.average_value || 0).toFixed(
             1
           )} ppm`,
-          color: '#337EFF',
+          color: "#337EFF",
           radius: 70,
           strokeWidth: 15,
-          label: 'CO2',
+          label: "CO2",
         },
         {
+          measurementType: "vdd_measurements",
           numeric: parseFloat(data.vdd[0]?.average_value || 0).toFixed(1),
           display: `${parseFloat(data.vdd[0]?.average_value || 0).toFixed(
             1
           )} V`,
-          color: '#A0C287',
+          color: "#A0C287",
           radius: 70,
           strokeWidth: 15,
-          label: 'VDD',
+          label: "VDD",
         },
         {
+          measurementType: "humidity_measurements",
           numeric: parseFloat(data.humidity[0]?.average_value || 0).toFixed(1),
           display: `${parseFloat(data.humidity[0]?.average_value || 0).toFixed(
             1
           )} %`,
-          color: '#A9A9A9',
+          color: "#A9A9A9",
           radius: 70,
           strokeWidth: 15,
-          label: 'Humidity',
+          label: "Humidity",
         },
       ];
 
       setChartData(formattedData);
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      console.error("Failed to fetch data:", error);
     }
   };
 
@@ -123,12 +131,15 @@ const HomeScreen = ({ navigation }) => {
           return (
             <TouchableOpacity
               onPress={() => setIsBottomSheetVisible(true)}
-              style={styles.selector}
+              style={[
+                styles.selector,
+                Platform.OS === "ios" && { paddingVertical: 2, marginBottom: 6 },
+              ]}
             >
               <Text
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                style={styles.selectorText}
+                style={[styles.selectorText]}
               >
                 {chosenAssetName}
               </Text>
@@ -143,7 +154,7 @@ const HomeScreen = ({ navigation }) => {
           );
         }
       },
-      headerTitle: '',
+      headerTitle: "",
     });
   }, [assets, chosenAssetName, navigation]);
 
@@ -160,7 +171,7 @@ const HomeScreen = ({ navigation }) => {
   return (
     <>
       <ScrollView style={styles.container}>
-        <Text style={styles.title}>Consumption Overview</Text>
+        <Text style={styles.title}>Overview</Text>
         <View style={styles.chartContainer}>
           <MonthDropdown
             selectedMonth={selectedMonth}
@@ -207,23 +218,37 @@ const HomeScreen = ({ navigation }) => {
         </View>
         <View style={styles.subtitleRow}>
           <Text style={styles.subtitle}>Monthly reports</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Reports')}>
+          <TouchableOpacity onPress={() => navigation.navigate("Reports")}>
             <Text style={styles.viewAll}>View All</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.cardGrid}>
           {chartData.map((report, index) => (
-            <ReportCard
-              key={index}
-              title={report.label}
-              value={report.display}
-              onPress={() =>
-                navigation.navigate('Reports', {
-                  screen: 'Report',
-                  params: { reportTitle: report.label },
-                })
-              }
-            />
+            <View key={index} style={styles.card}>
+              <ReportCard
+                title={report.label}
+                value={report.display}
+                onPress={() => {
+                  if (!chosenAssetId) {
+                    showToast(
+                      "No Asset Selected",
+                      "Please select an asset first.",
+                      "warning",
+                      3000 
+                    );
+                  } else {
+                    navigation.navigate("Reports", {
+                      screen: "Report",
+                      params: {
+                        measurementType: report.measurementType,
+                        unit: MEASUREMENT_CONFIG[report.measurementType]?.unit || "",
+                        aggrType: MEASUREMENT_CONFIG[report.measurementType]?.aggrType || "",
+                      },
+                    });
+                  }
+                }}
+              />
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -244,47 +269,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingHorizontal: 35,
   },
   title: {
     fontSize: 22,
-    fontFamily: 'Inter-SemiBold',
-    color: '#000000',
+    fontFamily: "Inter-SemiBold",
+    color: "#000000",
     marginBottom: 12,
   },
   chartContainer: {
-    width: '90%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 21.18,
     padding: 16,
     marginBottom: 36,
-    alignSelf: 'center',
+    alignSelf: "center",
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    position: 'relative',
+    position: "relative",
   },
   rowContainer: {
     marginTop: 34,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
   },
   chartCorner: {
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    position: 'relative',
+    justifyContent: "flex-start",
+    alignItems: "center",
+    position: "relative",
   },
   legendContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginTop: 16,
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
   legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
     marginRight: 16,
   },
@@ -296,44 +321,38 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#000000',
+    fontFamily: "Inter-Medium",
+    color: "#000000",
   },
   subtitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 15,
-    fontFamily: 'Inter-SemiBold',
-    color: '#000000',
+    fontSize: 16,
+    fontFamily: "Inter-SemiBold",
+    color: "#000000",
   },
   viewAll: {
     fontSize: 15,
-    fontFamily: 'Inter-Medium',
-    color: '#A0C287',
-  },
-  cardGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    padding: 7,
+    fontFamily: "Inter-Medium",
+    color: "#A0C287",
   },
   selector: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     width: 180,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginLeft: 20,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#D1D1D1',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
+    borderColor: "#D1D1D1",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -342,17 +361,26 @@ const styles = StyleSheet.create({
 
   selectorText: {
     fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#333333',
+    fontFamily: "Inter-Medium",
+    color: "#333333",
     flex: 1,
     marginRight: 8,
   },
   singleAssetContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginLeft: 20,
+  },
+  cardGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  card: {
+    width: "48%",
+    marginBottom: 10,
   },
 });

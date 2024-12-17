@@ -33,6 +33,8 @@ const UserDetails = ({
   const API_IP = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 
+
+
   // Function to fetch user details
   const fetchUserDetails = useCallback(async () => {
     try {
@@ -66,6 +68,9 @@ const UserDetails = ({
       fetchUserDetails();
     }, [fetchUserDetails])
   );
+
+  console.log("user details: ", userDetails)
+
   
  
 
@@ -101,7 +106,13 @@ const UserDetails = ({
         </View>
         <View style={styles.detail}>
           <Text style={styles.title}>Assigned Assets</Text>
-          <Text style={styles.details}>{userDetails.asset_name}</Text>
+          {userDetails.assets.map((asset, index) => {
+            return (
+              <Text style={styles.details} key={index}>
+                {asset.asset_name}
+              </Text>
+            );
+          })}
         </View>
       </View>
 
