@@ -116,7 +116,7 @@ git clone https://github.com/AndreiSusha/SmartFlow.git
 cd your_repo_name
 ```
 
-## Database Setup
+### Database Setup
 
 This project includes a database dump file to help you set up the `SmartFlow` database.
 
