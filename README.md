@@ -116,8 +116,6 @@ git clone https://github.com/AndreiSusha/SmartFlow.git
 cd your_repo_name
 ```
 
-1. **Database**:
-
 ## Database Setup
 
 This project includes a database dump file to help you set up the `SmartFlow` database.
@@ -142,7 +140,7 @@ This project includes a database dump file to help you set up the `SmartFlow` da
 
    ```
 
-2. **Backend**:
+1. **Backend**:
 
 - Navigate to the director:
 
@@ -172,7 +170,7 @@ npm install
 npm start
 ```
 
-3. Frontend
+2. Frontend
 
 - Navigate to the directory:
 
