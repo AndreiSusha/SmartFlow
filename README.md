@@ -140,6 +140,8 @@ This project includes a database dump file to help you set up the `SmartFlow` da
 
    ```
 
+### Launch of the project
+
 1. **Backend**:
 
 - Navigate to the director:
